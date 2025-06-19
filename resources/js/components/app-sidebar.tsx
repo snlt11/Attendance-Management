@@ -14,6 +14,11 @@ const mainNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
     {
+        title: 'Users',
+        href: '/users',
+        icon: Users,
+    },
+    {
         title: 'Classes',
         href: '/classes',
         icon: GraduationCap,
@@ -27,16 +32,6 @@ const mainNavItems: NavItem[] = [
         title: 'Locations',
         href: '/locations',
         icon: MapPin,
-    },
-    {
-        title: 'Users',
-        href: '/users',
-        icon: Users,
-    },
-    {
-        title: 'Departments',
-        href: '/departments',
-        icon: Building,
     },
 ];
 

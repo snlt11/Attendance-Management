@@ -21,7 +21,7 @@ import type { BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import { debounce } from 'lodash';
 import { Book, ChevronLeft, ChevronRight, Edit, Loader2, Plus, Search, Trash2 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
 
 interface Subject {
@@ -66,24 +66,6 @@ export default function Subjects({ subjects: initialSubjects }: { subjects: Subj
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
-
-    // Fetch subjects from API
-    const fetchSubjects = async () => {
-        try {
-            const response = await fetch('/subjects/list');
-            const data = (await response.json()) as APIResponse<Subject>;
-            if (data.success && data.subjects) {
-                setSubjects(data.subjects);
-            }
-        } catch (error) {
-            console.error('Failed to fetch subjects:', error);
-            toast.error('Failed to load subjects. Please refresh the page.');
-        }
-    };
-
-    useEffect(() => {
-        fetchSubjects();
-    }, []);
 
     // Filter subjects based on search term
     const filteredSubjects = useMemo(() => {
@@ -275,7 +257,7 @@ export default function Subjects({ subjects: initialSubjects }: { subjects: Subj
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Subjects" />
-            <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 dark:bg-gray-900/50">
+            <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                 {/* Search and Create */}
                 <div className="flex items-center justify-between">
                     <div className="relative max-w-sm flex-1">
@@ -284,7 +266,7 @@ export default function Subjects({ subjects: initialSubjects }: { subjects: Subj
                             type="search"
                             placeholder="Search subjects..."
                             onChange={(e) => handleSearch(e.target.value)}
-                            className="pl-10 dark:border-gray-700 dark:bg-gray-800 dark:placeholder-gray-400"
+                            className="pl-10 dark:border-gray-700 dark:placeholder-gray-400"
                         />
                     </div>
 

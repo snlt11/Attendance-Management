@@ -14,11 +14,10 @@ class ClassModel extends Model
 
     protected $fillable = [
         'subject_id',
-        'teacher_id',
+        'user_id',
+        'location_id',
         'start_time',
         'end_time',
-        'latitude',
-        'longitude'
     ];
 
     public function subject()
@@ -26,14 +25,19 @@ class ClassModel extends Model
         return $this->belongsTo(Subject::class);
     }
 
+    public function location()
+    {
+        return $this->belongsTo(Location::class);
+    }
+
     public function teacher()
     {
-        return $this->belongsTo(User::class, 'teacher_id');
+        return $this->belongsTo(User::class, 'user_id')->where('role', 'teacher');
     }
 
     public function students()
     {
-        return $this->belongsToMany(User::class, 'class_students', 'class_id', 'student_id');
+        return $this->belongsToMany(User::class, 'class_students', 'class_id', 'student_id')->where('role', 'student');
     }
 
     public function sessions()

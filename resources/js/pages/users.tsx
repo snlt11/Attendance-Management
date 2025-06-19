@@ -23,7 +23,7 @@ import type { BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import { debounce } from 'lodash';
 import { Briefcase, ChevronLeft, ChevronRight, Edit, GraduationCap, Loader2, Plus, Search, Trash2 } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
 
 interface UserItem {
@@ -173,7 +173,15 @@ const PaginationComponent = ({
     );
 };
 
-export default function UserManagement({ users: initialUsers }: { users: UserItem[] }) {
+export default function UserManagement({
+    users: initialUsers,
+    auth,
+}: {
+    users: UserItem[];
+    auth: {
+        user: UserItem;
+    };
+}) {
     const [users, setUsers] = useState<UserItem[]>(initialUsers);
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState<string>('all');
@@ -198,24 +206,6 @@ export default function UserManagement({ users: initialUsers }: { users: UserIte
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
-
-    // Fetch users from API
-    const fetchUsers = async () => {
-        try {
-            const response = await fetch('/users/list');
-            const data = (await response.json()) as APIResponse<UserItem[]>;
-            if (data.success && data.users) {
-                setUsers(data.users.flat());
-            }
-        } catch (error) {
-            console.error('Failed to fetch users:', error);
-            toast.error('Failed to load users. Please refresh the page.');
-        }
-    };
-
-    useEffect(() => {
-        fetchUsers();
-    }, []);
 
     // Filter users based on search term, role, and status
     const filteredUsers = useMemo(() => {
@@ -466,11 +456,6 @@ export default function UserManagement({ users: initialUsers }: { users: UserIte
         }
     };
 
-    const getRoleIcon = (role: string) => {
-        const roleData = roles.find((r) => r.value === role);
-        return roleData?.icon || Briefcase;
-    };
-
     const getInitials = (name: string) => {
         return name
             .split(' ')
@@ -488,37 +473,6 @@ export default function UserManagement({ users: initialUsers }: { users: UserIte
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Users" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                {/* Stats Cards */}
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <Card>
-                        <div className="p-4">
-                            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Users</div>
-                            <div className="mt-1 text-2xl font-semibold">{stats.total}</div>
-                        </div>
-                    </Card>
-
-                    <Card>
-                        <div className="p-4">
-                            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Active Users</div>
-                            <div className="mt-1 text-2xl font-semibold">{stats.active}</div>
-                        </div>
-                    </Card>
-
-                    <Card>
-                        <div className="p-4">
-                            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Teachers</div>
-                            <div className="mt-1 text-2xl font-semibold">{stats.teachers}</div>
-                        </div>
-                    </Card>
-
-                    <Card>
-                        <div className="p-4">
-                            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Students</div>
-                            <div className="mt-1 text-2xl font-semibold">{stats.students}</div>
-                        </div>
-                    </Card>
-                </div>
-
                 {/* Header with Search and Filters */}
                 <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
                     <div className="flex flex-1 flex-col gap-4 sm:flex-row">
@@ -683,6 +637,37 @@ export default function UserManagement({ users: initialUsers }: { users: UserIte
                     </Dialog>
                 </div>
 
+                {/* Stats Cards */}
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <Card>
+                        <div className="p-4">
+                            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Users</div>
+                            <div className="mt-1 text-2xl font-semibold">{stats.total}</div>
+                        </div>
+                    </Card>
+
+                    <Card>
+                        <div className="p-4">
+                            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Active Users</div>
+                            <div className="mt-1 text-2xl font-semibold">{stats.active}</div>
+                        </div>
+                    </Card>
+
+                    <Card>
+                        <div className="p-4">
+                            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Teachers</div>
+                            <div className="mt-1 text-2xl font-semibold">{stats.teachers}</div>
+                        </div>
+                    </Card>
+
+                    <Card>
+                        <div className="p-4">
+                            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Students</div>
+                            <div className="mt-1 text-2xl font-semibold">{stats.students}</div>
+                        </div>
+                    </Card>
+                </div>
+
                 {/* Users Grid */}
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {paginatedUsers.length === 0 ? (
@@ -734,27 +719,29 @@ export default function UserManagement({ users: initialUsers }: { users: UserIte
                                             <Edit className="h-4 w-4" />
                                         </Button>
 
-                                        <AlertDialog open={deleteDialogOpen && userToDelete?.id === user.id}>
-                                            <AlertDialogTrigger asChild>
-                                                <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(user)}>
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>Delete User</AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                        Are you sure you want to delete <b>{userToDelete?.name}</b>? This action cannot be undone.
-                                                    </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel onClick={closeDeleteDialog}>Cancel</AlertDialogCancel>
-                                                    <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
-                                                        Delete
-                                                    </AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
+                                        {user.id !== auth.user.id && (
+                                            <AlertDialog open={deleteDialogOpen && userToDelete?.id === user.id}>
+                                                <AlertDialogTrigger asChild>
+                                                    <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(user)}>
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Delete User</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            Are you sure you want to delete <b>{userToDelete?.name}</b>? This action cannot be undone.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel onClick={closeDeleteDialog}>Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+                                                            Delete
+                                                        </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        )}
                                     </div>
                                 </div>
                             </Card>

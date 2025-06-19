@@ -11,15 +11,15 @@ return new class extends Migration
         Schema::create('classes', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('subject_id')->index();
-            $table->uuid('teacher_id')->index();
+            $table->uuid('user_id')->index();
+            $table->uuid('location_id')->index();
             $table->time('start_time');
             $table->time('end_time');
-            $table->decimal('latitude', 10, 7);
-            $table->decimal('longitude', 10, 7);
             $table->timestamps();
 
             $table->foreign('subject_id')->references('id')->on('subjects');
-            $table->foreign('teacher_id')->references('id')->on('users');
+            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('location_id')->references('id')->on('locations');
         });
     }
 

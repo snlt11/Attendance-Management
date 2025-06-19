@@ -22,14 +22,14 @@ class SubjectController extends Controller
     /**
      * Get subjects for API/AJAX requests
      */
-    public function list()
-    {
-        $subjects = Subject::orderBy('name')->get();
-        return response()->json([
-            'success' => true,
-            'subjects' => $subjects
-        ]);
-    }
+    // public function list()
+    // {
+    //     $subjects = Subject::orderBy('name')->get();
+    //     return response()->json([
+    //         'success' => true,
+    //         'subjects' => $subjects
+    //     ]);
+    // }
 
     /**
      * Store a newly created resource in storage.

@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
@@ -13,16 +13,10 @@ class UserController extends Controller
     {
         $users = User::all();
         return inertia('users', [
-            'users' => $users
-        ]);
-    }
-
-    public function list()
-    {
-        $users = User::all();
-        return response()->json([
-            'success' => true,
-            'users' => $users
+            'users' => $users,
+            'auth' => [
+                'user' => Auth::user(),
+            ],
         ]);
     }
 

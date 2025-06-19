@@ -18,7 +18,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // User management routes
     Route::get('users', [UserController::class, 'index'])->name('users.index');
-    Route::get('users/list', [UserController::class, 'list'])->name('users.list');
     Route::post('users', [UserController::class, 'store'])->name('users.store');
     Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
     Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
@@ -32,13 +31,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Subject routes
     Route::get('subjects', [SubjectController::class, 'index'])->name('subjects.index');
-    Route::get('subjects/list', [SubjectController::class, 'list'])->name('subjects.list');
+    // Route::get('subjects/list', [SubjectController::class, 'list'])->name('subjects.list');
     Route::post('subjects', [SubjectController::class, 'store'])->name('subjects.store');
     Route::put('subjects/{subject}', [SubjectController::class, 'update'])->name('subjects.update');
     Route::delete('subjects/{subject}', [SubjectController::class, 'destroy'])->name('subjects.destroy');
 
     Route::resource('locations', LocationController::class);
-    Route::get('departments', fn() => inertia('departments'));
 });
 
 require __DIR__ . '/settings.php';
