@@ -19,6 +19,7 @@ import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
+import type { LatLngTuple, LeafletMouseEvent, Map, MapOptions, Marker } from 'leaflet';
 import { debounce } from 'lodash';
 import { AlertCircle, ChevronLeft, ChevronRight, Edit, Loader2, MapPin, Navigation, Plus, Search, Trash2 } from 'lucide-react';
 import type React from 'react';
@@ -48,6 +49,12 @@ interface SearchResult {
     type?: string;
 }
 
+interface APIResponse<T> {
+    success: boolean;
+    location?: T;
+    message?: string;
+}
+
 // Stable Map Component with Error Handling
 const StableMap = ({
     onLocationSelect,
@@ -61,16 +68,16 @@ const StableMap = ({
     editingLocation: Location | null;
 }) => {
     const mapRef = useRef<HTMLDivElement>(null);
-    const mapInstanceRef = useRef<any>(null);
-    const markerRef = useRef<any>(null);
+    const mapInstanceRef = useRef<Map | null>(null);
+    const markerRef = useRef<Marker | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [mapLoaded, setMapLoaded] = useState(false);
     const [mapError, setMapError] = useState<string | null>(null);
 
-    // Safe API call with error handling
-    const safeApiCall = async (url: string): Promise<any> => {
+    // Type-safe API call with error handling
+    const safeApiCall = async <T extends Record<string, any>>(url: string): Promise<T> => {
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
@@ -88,26 +95,25 @@ const StableMap = ({
                 throw new Error(`HTTP ${response.status}`);
             }
 
-            return await response.json();
-        } catch (error) {
-            console.error('API call failed:', error);
-            throw error;
+            return response.json();
+        } catch (err) {
+            console.error('API call failed:', err);
+            throw err;
         }
     };
 
-    // Initialize map with error handling
+    // Type-safe map initialization
     const initializeMap = useCallback(async () => {
         if (!mapRef.current) return;
 
         try {
             setMapError(null);
 
-            // Dynamic import with error handling
-            const L = await import('leaflet').catch(() => {
+            const L = await import('leaflet').catch((err) => {
+                console.error('Failed to load Leaflet:', err);
                 throw new Error('Failed to load map library');
             });
 
-            // Fix marker icons
             delete (L.Icon.Default.prototype as any)._getIconUrl;
             L.Icon.Default.mergeOptions({
                 iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
@@ -115,84 +121,83 @@ const StableMap = ({
                 shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
             });
 
-            // Initialize map
             const initialLat = isEditing && editingLocation ? editingLocation.latitude : 40.7128;
             const initialLng = isEditing && editingLocation ? editingLocation.longitude : -74.006;
             const initialZoom = isEditing && editingLocation ? 15 : 2;
+            const initialCenter: LatLngTuple = [initialLat, initialLng];
 
-            const map = L.map(mapRef.current, {
-                center: [initialLat, initialLng],
+            const mapOptions: MapOptions = {
+                center: initialCenter,
                 zoom: initialZoom,
                 zoomControl: true,
                 scrollWheelZoom: true,
-            });
+            };
 
-            // Add tile layer with error handling
+            const map = L.map(mapRef.current, mapOptions);
+            mapInstanceRef.current = map;
+
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors',
                 maxZoom: 19,
-            })
+            } as L.TileLayerOptions)
                 .addTo(map)
                 .on('tileerror', () => {
                     console.warn('Some map tiles failed to load');
                 });
 
-            // Add click handler
-            map.on('click', async (e: any) => {
+            map.on('click', async (e: LeafletMouseEvent) => {
                 try {
                     const { lat, lng } = e.latlng;
 
-                    // Remove existing marker
-                    if (markerRef.current) {
-                        map.removeLayer(markerRef.current);
+                    if (markerRef.current && mapInstanceRef.current) {
+                        mapInstanceRef.current.removeLayer(markerRef.current);
                     }
 
-                    // Add new marker
-                    const marker = L.marker([lat, lng]).addTo(map);
-                    markerRef.current = marker;
+                    if (mapInstanceRef.current) {
+                        const marker = L.marker([lat, lng]).addTo(mapInstanceRef.current);
+                        markerRef.current = marker;
 
-                    // Try to get address, but don't fail if it doesn't work
-                    let address = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-                    try {
-                        const data = await safeApiCall(
-                            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
-                        );
-                        if (data && data.display_name) {
-                            address = data.display_name;
+                        let address = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                        try {
+                            const data = await safeApiCall<{ display_name: string }>(
+                                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
+                            );
+                            if (data.display_name) {
+                                address = data.display_name;
+                            }
+                        } catch (err) {
+                            console.warn('Reverse geocoding failed, using coordinates');
                         }
-                    } catch (error) {
-                        console.warn('Reverse geocoding failed, using coordinates');
-                    }
 
-                    marker.bindPopup('Selected Location').openPopup();
-                    onLocationSelect(lat, lng, address);
-                } catch (error) {
-                    console.error('Map click error:', error);
+                        marker.bindPopup('Selected Location').openPopup();
+                        onLocationSelect(lat, lng, address);
+                    }
+                } catch (err) {
+                    console.error('Map click error:', err);
                     toast.error('Failed to select location. Please try again.');
                 }
             });
 
-            mapInstanceRef.current = map;
-
-            // Add existing marker if editing
-            if (isEditing && editingLocation) {
+            if (isEditing && editingLocation && mapInstanceRef.current) {
                 try {
-                    const marker = L.marker([editingLocation.latitude, editingLocation.longitude]).addTo(map).bindPopup(editingLocation.name);
+                    const marker = L.marker([editingLocation.latitude, editingLocation.longitude])
+                        .addTo(mapInstanceRef.current)
+                        .bindPopup(editingLocation.name);
                     markerRef.current = marker;
-                } catch (error) {
-                    console.error('Failed to add existing marker:', error);
+                } catch (err) {
+                    console.error('Failed to add existing marker:', err);
                 }
             }
 
             setMapLoaded(true);
-        } catch (error) {
-            console.error('Map initialization failed:', error);
+        } catch (err) {
+            console.error('Map initialization failed:', err);
             setMapError('Failed to load map. Please refresh the page.');
             setMapLoaded(false);
         }
     }, [isEditing, editingLocation, onLocationSelect]);
 
-    // Initialize map on mount
+    // Safe cleanup with type checking
     useEffect(() => {
         initializeMap();
 
@@ -208,23 +213,22 @@ const StableMap = ({
         };
     }, [initializeMap]);
 
-    // Update marker when coordinates change
+    // Type-safe marker updates
     useEffect(() => {
         if (mapInstanceRef.current && selectedCoords) {
-            console.log('StableMap marker update useEffect:', selectedCoords); // DEBUG
             import('leaflet')
                 .then((L) => {
-                    // Remove existing marker
-                    if (markerRef.current) {
+                    if (markerRef.current && mapInstanceRef.current) {
                         mapInstanceRef.current.removeLayer(markerRef.current);
                     }
-                    // Add new marker
-                    const marker = L.marker([selectedCoords.lat, selectedCoords.lng])
-                        .addTo(mapInstanceRef.current)
-                        .bindPopup('Selected Location')
-                        .openPopup();
-                    markerRef.current = marker;
-                    // Do NOT setView or zoom here
+
+                    if (mapInstanceRef.current) {
+                        const marker = L.marker([selectedCoords.lat, selectedCoords.lng])
+                            .addTo(mapInstanceRef.current)
+                            .bindPopup('Selected Location')
+                            .openPopup();
+                        markerRef.current = marker;
+                    }
                 })
                 .catch((error) => {
                     console.error('Failed to update marker:', error);
@@ -233,6 +237,7 @@ const StableMap = ({
     }, [selectedCoords]);
 
     // Search functionality with error handling
+    // Search places type-safely
     const searchPlaces = async (query: string) => {
         if (!query.trim()) {
             setSearchResults([]);
@@ -241,7 +246,7 @@ const StableMap = ({
 
         setIsSearching(true);
         try {
-            const data = await safeApiCall(
+            const data = await safeApiCall<SearchResult[]>(
                 `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=8&addressdetails=1`,
             );
 
@@ -253,7 +258,6 @@ const StableMap = ({
         } catch (error) {
             console.error('Search failed:', error);
             setSearchResults([]);
-            // Don't show error toast for search failures, just fail silently
         } finally {
             setIsSearching(false);
         }
@@ -279,9 +283,8 @@ const StableMap = ({
                 throw new Error('Invalid coordinates');
             }
 
-            // Pan/zoom the map to the selected location
             if (mapInstanceRef.current) {
-                mapInstanceRef.current.setView([lat, lng], 15); // 15 is a good zoom for city
+                mapInstanceRef.current.setView([lat, lng], 15);
             }
 
             onLocationSelect(lat, lng, result.display_name);
@@ -309,13 +312,12 @@ const StableMap = ({
                         mapInstanceRef.current.setView([lat, lng], 15);
                     }
 
-                    // Try to get address
                     let address = `Current Location: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
                     try {
-                        const data = await safeApiCall(
+                        const data = await safeApiCall<{ display_name: string }>(
                             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
                         );
-                        if (data && data.display_name) {
+                        if (data.display_name) {
                             address = data.display_name;
                         }
                     } catch (error) {
@@ -365,7 +367,7 @@ const StableMap = ({
                         type="text"
                         placeholder="Search anywhere in the world..."
                         value={searchQuery}
-                        onChange={(e) => handleSearchChange(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearchChange(e.target.value)}
                         className="pr-20 pl-10"
                     />
                     <Button
@@ -475,8 +477,20 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: { currentPage: nu
     );
 };
 
+interface FormData {
+    name: string;
+    latitude: string;
+    longitude: string;
+    address: string;
+}
+
 interface LocationsPageProps {
     locations: Location[];
+}
+
+interface ErrorState {
+    name?: string;
+    coordinates?: string;
 }
 
 export default function Locations({ locations: initialLocations }: LocationsPageProps) {
@@ -490,14 +504,14 @@ export default function Locations({ locations: initialLocations }: LocationsPage
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6;
 
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<FormData>({
         name: '',
         latitude: '',
         longitude: '',
         address: '',
     });
 
-    const [errors, setErrors] = useState<Record<string, string>>({});
+    const [errors, setErrors] = useState<ErrorState>({});
 
     // Delete confirmation dialog state
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -506,11 +520,12 @@ export default function Locations({ locations: initialLocations }: LocationsPage
 
     // Filter locations based on search term
     const filteredLocations = useMemo(() => {
-        if (!searchTerm) return locations;
-        return locations.filter(
-            (location) =>
-                location.name.toLowerCase().includes(searchTerm.toLowerCase()) || location.address?.toLowerCase().includes(searchTerm.toLowerCase()),
-        );
+        const searchLower = searchTerm.toLowerCase();
+        return searchTerm
+            ? locations.filter(
+                  (location) => location.name.toLowerCase().includes(searchLower) || location.address?.toLowerCase().includes(searchLower),
+              )
+            : locations;
     }, [locations, searchTerm]);
 
     // Paginate filtered locations
@@ -518,7 +533,7 @@ export default function Locations({ locations: initialLocations }: LocationsPage
         const startIndex = (currentPage - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
         return filteredLocations.slice(startIndex, endIndex);
-    }, [filteredLocations, currentPage, itemsPerPage]);
+    }, [filteredLocations, currentPage]);
 
     const totalPages = Math.ceil(filteredLocations.length / itemsPerPage);
 
@@ -529,7 +544,6 @@ export default function Locations({ locations: initialLocations }: LocationsPage
 
     const handleLocationSelect = useCallback((lat: number, lng: number, address?: string) => {
         try {
-            console.log('handleLocationSelect called:', lat, lng, address); // DEBUG
             setSelectedCoords({ lat, lng });
             setFormData((prev) => ({
                 ...prev,
@@ -537,17 +551,18 @@ export default function Locations({ locations: initialLocations }: LocationsPage
                 longitude: lng.toFixed(6),
                 address: address || `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
             }));
-            // toast.success(`Location selected: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
         } catch (error) {
             console.error('Failed to handle location selection:', error);
             toast.error('Failed to select location. Please try again.');
         }
     }, []);
 
-    const validateForm = () => {
-        const newErrors: Record<string, string> = {};
+    const validateForm = (): boolean => {
+        const newErrors: ErrorState = {};
 
-        if (!formData.name.trim()) newErrors.name = 'Location name is required';
+        if (!formData.name.trim()) {
+            newErrors.name = 'Location name is required';
+        }
         if (!formData.latitude || !formData.longitude) {
             newErrors.coordinates = 'Please select a location on the map';
         }
@@ -580,48 +595,41 @@ export default function Locations({ locations: initialLocations }: LocationsPage
             }
 
             let response;
+            const payload = {
+                name: formData.name.trim(),
+                latitude: lat,
+                longitude: lng,
+                address: formData.address,
+            };
+
+            const headers = {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '',
+            };
+
             if (isEditing && editingLocation) {
-                // Update
                 response = await fetch(`/locations/${editingLocation.id}`, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '',
-                    },
-                    body: JSON.stringify({
-                        name: formData.name.trim(),
-                        latitude: lat,
-                        longitude: lng,
-                        address: formData.address,
-                    }),
+                    headers,
+                    body: JSON.stringify(payload),
                 });
             } else {
-                // Create
                 response = await fetch('/locations', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '',
-                    },
-                    body: JSON.stringify({
-                        name: formData.name.trim(),
-                        latitude: lat,
-                        longitude: lng,
-                        address: formData.address,
-                    }),
+                    headers,
+                    body: JSON.stringify(payload),
                 });
             }
 
-            const data = await response.json();
-            if (!data.success) throw new Error('API error');
+            const data = (await response.json()) as APIResponse<Location>;
+            if (!data.success) throw new Error(data.message || 'API error');
 
-            if (isEditing && editingLocation) {
-                setLocations((prev) => prev.map((location) => (location.id === editingLocation.id ? data.location : location)));
+            if (isEditing && editingLocation && data.location) {
+                setLocations((prev) => prev.map((location) => (location.id === editingLocation.id ? data.location! : location)));
                 toast.success('Location updated successfully!');
-            } else {
-                setLocations((prev) => [data.location, ...prev]);
+            } else if (data.location) {
+                setLocations((prev) => [data.location!, ...prev]);
                 toast.success('Location created successfully!');
             }
 
@@ -637,17 +645,19 @@ export default function Locations({ locations: initialLocations }: LocationsPage
         }
     };
 
-    // Delete handler
     const openDeleteDialog = (location: Location) => {
         setLocationToDelete(location);
         setDeleteDialogOpen(true);
     };
+
     const closeDeleteDialog = () => {
         setDeleteDialogOpen(false);
         setLocationToDelete(null);
     };
+
     const handleDelete = async () => {
         if (!locationToDelete) return;
+
         setDeletingId(locationToDelete.id);
         try {
             const response = await fetch(`/locations/${locationToDelete.id}`, {
@@ -658,8 +668,10 @@ export default function Locations({ locations: initialLocations }: LocationsPage
                     'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '',
                 },
             });
-            const data = await response.json();
-            if (!data.success) throw new Error('API error');
+
+            const data = (await response.json()) as APIResponse<null>;
+            if (!data.success) throw new Error(data.message || 'API error');
+
             setLocations((prev) => prev.filter((location) => location.id !== locationToDelete.id));
             toast.success('Location deleted successfully!');
             closeDeleteDialog();
@@ -735,7 +747,7 @@ export default function Locations({ locations: initialLocations }: LocationsPage
                         <Input
                             type="search"
                             placeholder="Search locations..."
-                            onChange={(e) => handleSearch(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
                             className="max-w-sm pl-10"
                         />
                     </div>
@@ -763,7 +775,9 @@ export default function Locations({ locations: initialLocations }: LocationsPage
                                     <Input
                                         id="name"
                                         value={formData.name}
-                                        onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
+                                        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                            setFormData((prev) => ({ ...prev, name: e.target.value }))
+                                        }
                                         placeholder="e.g., Main Campus Library"
                                         className="dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:placeholder:text-gray-500"
                                     />
@@ -783,7 +797,6 @@ export default function Locations({ locations: initialLocations }: LocationsPage
 
                                 {selectedCoords && (
                                     <div className="grid grid-cols-2 gap-4">
-                                        {' '}
                                         <div className="space-y-2">
                                             <Label className="text-gray-700 dark:text-gray-300">Latitude</Label>
                                             <Input
@@ -843,7 +856,7 @@ export default function Locations({ locations: initialLocations }: LocationsPage
                             <p className="text-gray-500 dark:text-gray-400">No locations found</p>
                         </div>
                     ) : (
-                        paginatedLocations.map((location) => (
+                        paginatedLocations.map((location: Location) => (
                             <div
                                 key={location.id}
                                 className="rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-900"
