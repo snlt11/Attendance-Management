@@ -30,8 +30,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('classes/{class}', [ClassController::class, 'destroy'])->name('classes.destroy');
     Route::post('classes/{class}/generate-qr', [ClassController::class, 'generateQR'])->name('classes.generate-qr');
 
-    // Attendance routes
-    Route::resource('subjects', SubjectController::class);
+    // Subject routes
+    Route::get('subjects', [SubjectController::class, 'index'])->name('subjects.index');
+    Route::get('subjects/list', [SubjectController::class, 'list'])->name('subjects.list');
+    Route::post('subjects', [SubjectController::class, 'store'])->name('subjects.store');
+    Route::put('subjects/{subject}', [SubjectController::class, 'update'])->name('subjects.update');
+    Route::delete('subjects/{subject}', [SubjectController::class, 'destroy'])->name('subjects.destroy');
 
     Route::resource('locations', LocationController::class);
     Route::get('departments', fn() => inertia('departments'));

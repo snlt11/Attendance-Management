@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Subject;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
@@ -13,29 +12,23 @@ class SubjectController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index()
     {
-        $query = Subject::query()
-            ->withCount(['classes']) // Remove students count if relationship doesn't exist yet
-            ->when($request->search, function ($query, $search) {
-                $query->where('name', 'like', "%{$search}%");
-            })
-            ->orderBy('name');
-
-        $subjects = $query->paginate(12)->withQueryString();
-
-        return Inertia::render('subjects', [
-            'subjects' => $subjects,
-            'filters' => $request->only(['search']),
+        return inertia('subjects', [
+            'subjects' => Subject::orderBy('name')->get()
         ]);
     }
 
     /**
-     * Show the form for creating a new resource.
+     * Get subjects for API/AJAX requests
      */
-    public function create()
+    public function list()
     {
-        return Inertia::render('Subjects/Create');
+        $subjects = Subject::orderBy('name')->get();
+        return response()->json([
+            'success' => true,
+            'subjects' => $subjects
+        ]);
     }
 
     /**
@@ -45,39 +38,20 @@ class SubjectController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:100|unique:subjects,name',
+            'code' => 'nullable|string|max:50',
+            'description' => 'nullable|string|max:255',
         ], [
             'name.required' => 'Subject name is required.',
             'name.unique' => 'A subject with this name already exists.',
             'name.max' => 'Subject name cannot exceed 100 characters.',
         ]);
 
-        $validated['id'] = Str::uuid();
+        $subject = Subject::create($validated);
 
-        Subject::create($validated);
-
-        return redirect()->route('subjects.index')
-            ->with('success', "Subject '{$validated['name']}' created successfully!");
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Subject $subject)
-    {
-        $subject->loadCount(['classes']);
-        
-        return Inertia::render('Subjects/Show', [
+        return response()->json([
+            'success' => true,
             'subject' => $subject,
-        ]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Subject $subject)
-    {
-        return Inertia::render('Subjects/Edit', [
-            'subject' => $subject,
+            'message' => 'Subject created successfully!'
         ]);
     }
 
@@ -91,19 +65,23 @@ class SubjectController extends Controller
                 'required',
                 'string',
                 'max:100',
-                Rule::unique('subjects', 'name')->ignore($subject->id),
+                Rule::unique('subjects', 'name')->ignore($subject->id)
             ],
+            'code' => 'nullable|string|max:50',
+            'description' => 'nullable|string|max:255',
         ], [
             'name.required' => 'Subject name is required.',
             'name.unique' => 'A subject with this name already exists.',
             'name.max' => 'Subject name cannot exceed 100 characters.',
         ]);
 
-        $oldName = $subject->name;
         $subject->update($validated);
 
-        return redirect()->route('subjects.index')
-            ->with('success', "Subject '{$oldName}' updated to '{$validated['name']}' successfully!");
+        return response()->json([
+            'success' => true,
+            'subject' => $subject,
+            'message' => 'Subject updated successfully!'
+        ]);
     }
 
     /**
@@ -111,31 +89,18 @@ class SubjectController extends Controller
      */
     public function destroy(Subject $subject)
     {
-        $subjectName = $subject->name;
-        
-        // Check if subject has associated classes
         if ($subject->classes()->exists()) {
-            return redirect()->route('subjects.index')
-                ->with('error', "Cannot delete '{$subjectName}' because it has associated classes.");
+            return response()->json([
+                'success' => false,
+                'message' => "Cannot delete subject because it has associated classes."
+            ], 422);
         }
 
         $subject->delete();
 
-        return redirect()->route('subjects.index')
-            ->with('success', "Subject '{$subjectName}' deleted successfully!");
-    }
-
-    /**
-     * Get subjects for API/AJAX requests
-     */
-    public function api(Request $request)
-    {
-        $query = Subject::query()
-            ->when($request->search, function ($query, $search) {
-                $query->where('name', 'like', "%{$search}%");
-            })
-            ->orderBy('name');
-
-        return response()->json($query->get());
+        return response()->json([
+            'success' => true,
+            'message' => 'Subject deleted successfully!'
+        ]);
     }
 }

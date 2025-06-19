@@ -11,6 +11,8 @@ return new class extends Migration
         Schema::create('subjects', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name', 100)->unique();
+            $table->string('code')->nullable();
+            $table->string('description')->nullable();
             $table->timestamps();
         });
     }
