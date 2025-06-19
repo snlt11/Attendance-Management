@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\SubjectController;
@@ -24,11 +23,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('classes/{class}/generate-qr', [ClassController::class, 'generateQR'])->name('classes.generate-qr');
     
     // Attendance routes
-    Route::resource('attendances', AttendanceController::class);
     Route::resource('subjects', SubjectController::class);
-    Route::post('attendances/scan-qr', [AttendanceController::class, 'scanQR'])->name('attendances.scan-qr');
     
-    Route::get('locations', fn() => inertia('locations'));
+    Route::resource('locations', LocationController::class);
     Route::get('users', fn() => inertia('users'));
     Route::get('departments', fn() => inertia('departments'));
 });

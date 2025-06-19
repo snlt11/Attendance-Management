@@ -535,15 +535,6 @@ export default function Departments() {
     }
   }
 
-  const formatBudget = (budget?: number) => {
-    if (!budget) return "Not specified"
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 0,
-    }).format(budget)
-  }
-
   // Statistics
   const stats = useMemo(() => {
     const total = departments.length
