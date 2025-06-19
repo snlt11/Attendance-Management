@@ -166,7 +166,7 @@ const StableMap = ({
                                 address = data.display_name;
                             }
                         } catch (err) {
-                            console.warn('Reverse geocoding failed, using coordinates');
+                            console.warn('Reverse geocoding failed, using coordinates', err);
                         }
 
                         marker.bindPopup('Selected Location').openPopup();
@@ -321,7 +321,7 @@ const StableMap = ({
                             address = data.display_name;
                         }
                     } catch (error) {
-                        console.warn('Failed to get address for current location');
+                        console.warn('Failed to get address for current location', error);
                     }
 
                     onLocationSelect(lat, lng, address);
@@ -440,42 +440,71 @@ const StableMap = ({
 };
 
 // Pagination Component
-const Pagination = ({ currentPage, totalPages, onPageChange }: { currentPage: number; totalPages: number; onPageChange: (page: number) => void }) => {
+function Pagination({ currentPage, totalPages, onPageChange }: { currentPage: number; totalPages: number; onPageChange: (page: number) => void }) {
     if (totalPages <= 1) return null;
+    const pageNumbers: (number | string)[] = [];
+    const siblings = 2; // how many neighbors to show on each side
+    const showLeftEllipsis = currentPage > siblings + 2;
+    const showRightEllipsis = currentPage < totalPages - siblings - 1;
 
-    const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+    pageNumbers.push(1);
+
+    if (showLeftEllipsis) pageNumbers.push('...');
+
+    const startPage = Math.max(2, currentPage - siblings);
+    const endPage = Math.min(totalPages - 1, currentPage + siblings);
+    for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+    }
+
+    if (showRightEllipsis) pageNumbers.push('...');
+
+    if (totalPages > 1) pageNumbers.push(totalPages);
+
+    // Remove duplicates and sort
+    const uniquePages = Array.from(new Set(pageNumbers)).filter((p) => p === '...' || (typeof p === 'number' && p >= 1 && p <= totalPages));
 
     return (
-        <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-700">
-                Page {currentPage} of {totalPages}
+        <div className="flex items-center justify-center gap-2 py-4">
+            <button
+                className="flex items-center gap-1 rounded-lg border px-4 py-2 text-base font-medium text-gray-600 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300"
+                onClick={() => onPageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+            >
+                <ChevronLeft className="h-4 w-4" /> Previous
+            </button>
+            <div className="flex items-center gap-1">
+                {uniquePages.map((page, idx) =>
+                    page === '...' ? (
+                        <span key={idx} className="px-2 text-lg text-gray-400">
+                            ...
+                        </span>
+                    ) : (
+                        <button
+                            key={page}
+                            className={`h-10 w-10 rounded-lg border text-base font-medium transition-colors ${
+                                page === currentPage
+                                    ? 'bg-black text-white shadow dark:bg-white dark:text-black'
+                                    : 'bg-white text-black hover:bg-gray-100 dark:bg-gray-900 dark:text-white dark:hover:bg-gray-800'
+                            } dark:border-gray-700`}
+                            onClick={() => onPageChange(Number(page))}
+                            disabled={page === currentPage}
+                        >
+                            {page}
+                        </button>
+                    ),
+                )}
             </div>
-            <div className="flex items-center space-x-2">
-                <Button variant="outline" size="sm" onClick={() => onPageChange(currentPage - 1)} disabled={currentPage === 1}>
-                    <ChevronLeft className="h-4 w-4" />
-                    Previous
-                </Button>
-
-                {pages.map((page) => (
-                    <Button
-                        key={page}
-                        variant={page === currentPage ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => onPageChange(page)}
-                        className="min-w-[2.5rem]"
-                    >
-                        {page}
-                    </Button>
-                ))}
-
-                <Button variant="outline" size="sm" onClick={() => onPageChange(currentPage + 1)} disabled={currentPage === totalPages}>
-                    Next
-                    <ChevronRight className="h-4 w-4" />
-                </Button>
-            </div>
+            <button
+                className="flex items-center gap-1 rounded-lg border px-4 py-2 text-base font-medium text-gray-600 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300"
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+            >
+                Next <ChevronRight className="h-4 w-4" />
+            </button>
         </div>
     );
-};
+}
 
 interface FormData {
     name: string;

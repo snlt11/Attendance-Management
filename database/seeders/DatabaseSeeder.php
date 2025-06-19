@@ -4,7 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use App\Models\ClassModel;
-use App\Models\ClassSession;
+use App\Models\Location;
+use App\Models\Subject;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -14,14 +15,16 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        // Create users
+        User::factory(100)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        // Create subjects
+        Subject::factory(50)->create();
 
-        ClassModel::factory(10)->create();
-        ClassSession::factory(10)->create();
+        // Create locations
+        Location::factory(40)->create();
+
+        // Create classes
+        ClassModel::factory(100)->create();
     }
 }

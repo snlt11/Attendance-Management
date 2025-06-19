@@ -541,14 +541,14 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                 )}
                             </h3>
                             <div className="text-sm text-muted-foreground dark:text-gray-400">
-                                Teaching of {classItem.subject.name} by {classItem.teacher.name}
+                                Teaching of {classItem.subject.name} by {classItem.teacher?.name}
                             </div>
                         </div>
 
                         <div className="grid gap-2 text-sm text-muted-foreground dark:text-gray-400">
                             <div className="flex items-center gap-2">
                                 <BookOpen className="h-4 w-4" />
-                                <span>{classItem.teacher.name}</span>
+                                <span>{classItem.teacher?.name}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

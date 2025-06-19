@@ -254,6 +254,72 @@ export default function Subjects({ subjects: initialSubjects }: { subjects: Subj
         return dateString ? new Date(dateString).toLocaleDateString() : '';
     };
 
+    // Modern Compact Pagination
+    function Pagination({
+        currentPage,
+        totalPages,
+        onPageChange,
+    }: {
+        currentPage: number;
+        totalPages: number;
+        onPageChange: (page: number) => void;
+    }) {
+        if (totalPages <= 1) return null;
+        const pageNumbers: (number | string)[] = [];
+        const maxVisible = 5;
+        if (totalPages <= maxVisible) {
+            for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+        } else {
+            pageNumbers.push(1);
+            if (currentPage > 3) pageNumbers.push('...');
+            const start = Math.max(2, currentPage - 1);
+            const end = Math.min(totalPages - 1, currentPage + 1);
+            for (let i = start; i <= end; i++) pageNumbers.push(i);
+            if (currentPage < totalPages - 2) pageNumbers.push('...');
+            pageNumbers.push(totalPages);
+        }
+        return (
+            <div className="flex items-center justify-center gap-2 py-4">
+                <button
+                    className="flex items-center gap-1 rounded-lg border px-4 py-2 text-base font-medium text-gray-600 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300"
+                    onClick={() => onPageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                >
+                    <ChevronLeft className="h-4 w-4" /> Previous
+                </button>
+                <div className="flex items-center gap-1">
+                    {pageNumbers.map((page, idx) =>
+                        page === '...' ? (
+                            <span key={idx} className="px-2 text-lg text-gray-400">
+                                ...
+                            </span>
+                        ) : (
+                            <button
+                                key={page}
+                                className={`h-10 w-10 rounded-lg border text-base font-medium transition-colors ${
+                                    page === currentPage
+                                        ? 'bg-black text-white shadow dark:bg-white dark:text-black'
+                                        : 'bg-white text-black hover:bg-gray-100 dark:bg-gray-900 dark:text-white dark:hover:bg-gray-800'
+                                } dark:border-gray-700`}
+                                onClick={() => onPageChange(Number(page))}
+                                disabled={page === currentPage}
+                            >
+                                {page}
+                            </button>
+                        ),
+                    )}
+                </div>
+                <button
+                    className="flex items-center gap-1 rounded-lg border px-4 py-2 text-base font-medium text-gray-600 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300"
+                    onClick={() => onPageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                >
+                    Next <ChevronRight className="h-4 w-4" />
+                </button>
+            </div>
+        );
+    }
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Subjects" />
@@ -419,52 +485,7 @@ export default function Subjects({ subjects: initialSubjects }: { subjects: Subj
                     )}
                 </div>
 
-                {totalPages > 1 && (
-                    <div className="flex items-center justify-between">
-                        <div className="text-sm text-gray-700 dark:text-gray-300">
-                            Showing page {currentPage} of {totalPages}
-                        </div>
-                        <div className="flex items-center space-x-1">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handlePageChange(currentPage - 1)}
-                                disabled={currentPage === 1}
-                                className="px-3 py-2"
-                            >
-                                <ChevronLeft className="mr-1 h-4 w-4" />
-                                Previous
-                            </Button>
-
-                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                                <Button
-                                    key={page}
-                                    variant={page === currentPage ? 'default' : 'outline'}
-                                    size="sm"
-                                    onClick={() => handlePageChange(page)}
-                                    className={`min-w-[2.5rem] px-3 py-2 ${
-                                        page === currentPage
-                                            ? 'bg-primary text-primary-foreground dark:bg-primary dark:text-primary-foreground'
-                                            : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-                                    }`}
-                                >
-                                    {page}
-                                </Button>
-                            ))}
-
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handlePageChange(currentPage + 1)}
-                                disabled={currentPage === totalPages}
-                                className="px-3 py-2"
-                            >
-                                Next
-                                <ChevronRight className="ml-1 h-4 w-4" />
-                            </Button>
-                        </div>
-                    </div>
-                )}
+                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
             </div>
             <Toaster position="top-right" richColors closeButton />
         </AppLayout>

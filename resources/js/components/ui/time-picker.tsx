@@ -40,21 +40,6 @@ const formatTimeForDisplay = (time: string) => {
     return `${hour % 12 || 12}:${minutes} ${hour < 12 ? 'AM' : 'PM'}`;
 };
 
-// Convert 12-hour format to 24-hour format
-const convertTo24Hour = (time12h: string) => {
-    const [time, modifier] = time12h.split(' ');
-    let [hours, minutes] = time.split(':');
-    let hour = parseInt(hours);
-
-    if (hour === 12) {
-        hour = modifier === 'PM' ? 12 : 0;
-    } else if (modifier === 'PM') {
-        hour = hour + 12;
-    }
-
-    return `${hour.toString().padStart(2, '0')}:${minutes}`;
-};
-
 export function TimePicker({ label, error, value, onChange, id, className }: TimePickerProps) {
     // Find display value from the timeOptions
     const displayValue = value ? formatTimeForDisplay(value) : '';
