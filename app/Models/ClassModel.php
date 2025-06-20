@@ -16,6 +16,7 @@ class ClassModel extends Model
         'subject_id',
         'user_id',
         'location_id',
+        'registration_code',
         'start_time',
         'end_time',
     ];

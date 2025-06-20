@@ -47,6 +47,7 @@ interface ClassItem {
     subject: { id: string; name: string; code?: string };
     teacher: { id: string; name: string };
     location: { id: string; name: string };
+    registration_code: string;
     subject_id: string;
     user_id: string;
     location_id: string;
@@ -585,6 +586,26 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                     />
                                 </svg>
                                 <span>{classItem.location.name}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect 
+                                        x="4" 
+                                        y="4" 
+                                        width="16" 
+                                        height="16" 
+                                        rx="2"
+                                        stroke="currentColor"
+                                        strokeWidth="1.5"
+                                    />
+                                    <path
+                                        d="M8 12h8M12 8v8"
+                                        stroke="currentColor"
+                                        strokeWidth="1.5"
+                                        strokeLinecap="round"
+                                    />
+                                </svg>
+                                <span>{classItem.registration_code}</span>
                             </div>
                         </div>
                     </div>

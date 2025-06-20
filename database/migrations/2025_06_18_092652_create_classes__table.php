@@ -13,6 +13,7 @@ return new class extends Migration
             $table->uuid('subject_id')->index();
             $table->uuid('user_id')->index();
             $table->uuid('location_id')->index();
+            $table->string('registration_code')->nullable();
             $table->time('start_time');
             $table->time('end_time');
             $table->timestamps();

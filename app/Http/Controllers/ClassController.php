@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\Helper;
 use App\Models\ClassModel;
 use App\Models\Location;
 use App\Models\Subject;
@@ -94,6 +95,8 @@ class ClassController extends Controller
                     'errors' => ['time' => [$conflictMessage]]
                 ], 422);
             }
+            $registration_code = Helper::generate();
+            $validated['registration_code'] = $registration_code;
 
             // Create the class
             $class = ClassModel::create($validated);
