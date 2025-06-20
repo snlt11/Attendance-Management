@@ -157,6 +157,7 @@ interface Props {
         data: ClassItem[];
         current_page: number;
         last_page: number;
+        total: number;
     };
     filters: {
         search?: string;
@@ -188,6 +189,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
     const [currentPage, setCurrentPage] = useState(initialClasses.current_page);
     const [totalPages, setTotalPages] = useState(initialClasses.last_page);
+    const [totalCount, setTotalCount] = useState(initialClasses.total);
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [processing, setProcessing] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -265,6 +267,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
             setClasses(data.data);
             setTotalPages(data.last_page);
             setCurrentPage(data.current_page);
+            setTotalCount(data.total);
         } catch (error) {
             console.error('Error loading classes:', error);
             toast.error('Failed to load classes. Please try again.');
@@ -451,6 +454,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                     Accept: 'application/json',
                     'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '',
                 },
+                credentials: 'same-origin',
             });
 
             const data = await response.json();
@@ -589,21 +593,8 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                             </div>
                             <div className="flex items-center gap-2">
                                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <rect 
-                                        x="4" 
-                                        y="4" 
-                                        width="16" 
-                                        height="16" 
-                                        rx="2"
-                                        stroke="currentColor"
-                                        strokeWidth="1.5"
-                                    />
-                                    <path
-                                        d="M8 12h8M12 8v8"
-                                        stroke="currentColor"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                    />
+                                    <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" />
+                                    <path d="M8 12h8M12 8v8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                                 </svg>
                                 <span>{classItem.registration_code}</span>
                             </div>
@@ -851,7 +842,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                             <BookOpen className="h-5 w-5 text-blue-600 dark:text-blue-500" />
                             <h3 className="text-lg font-medium">Total Classes</h3>
                         </div>
-                        <p className="mt-2 text-3xl font-bold">{classes.length}</p>
+                        <p className="mt-2 text-3xl font-bold">{totalCount}</p>
                     </div>
                 </div>
 

@@ -30,7 +30,7 @@ class ClassController extends Controller
                 })
                 ->latest();
 
-            $classes = $query->paginate(10)->withQueryString();
+            $classes = $query->paginate(9)->withQueryString();
 
             if ($request->wantsJson()) {
                 return response()->json($classes);

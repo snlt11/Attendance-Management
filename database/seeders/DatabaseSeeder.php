@@ -15,7 +15,14 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create users
+        User::create([
+            'name' => 'Admin',
+            'email' => 'admin@admin.com',
+            'role' => 'teacher',
+            'status' => 'active',
+            'password' => bcrypt('password'),
+        ]);
+
         User::factory(100)->create();
 
         // Create subjects

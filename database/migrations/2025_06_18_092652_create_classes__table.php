@@ -14,6 +14,8 @@ return new class extends Migration
             $table->uuid('user_id')->index();
             $table->uuid('location_id')->index();
             $table->string('registration_code')->nullable();
+            $table->timestamp('registration_code_expires_at')->nullable()->after('registration_code');
+            $table->integer('max_students')->default(30)->after('registration_code_expires_at');
             $table->time('start_time');
             $table->time('end_time');
             $table->timestamps();
