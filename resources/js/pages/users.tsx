@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,7 +22,7 @@ import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import { debounce } from 'lodash';
-import { Briefcase, ChevronLeft, ChevronRight, Edit, GraduationCap, Loader2, Plus, Search, Trash2 } from 'lucide-react';
+import { BookOpen, Briefcase, ChevronLeft, ChevronRight, Edit, GraduationCap, Loader2, Plus, Search, Shield, Trash2, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
 
@@ -638,33 +638,65 @@ export default function UserManagement({
                 </div>
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <Card>
-                        <div className="p-4">
-                            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Users</div>
-                            <div className="mt-1 text-2xl font-semibold">{stats.total}</div>
-                        </div>
+                <div className="mb-2 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <Card className="relative overflow-hidden">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Total Users</p>
+                                    <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
+                                </div>
+                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
+                                    <Users className="h-6 w-6 text-blue-600" />
+                                </div>
+                            </div>
+                            <div className="absolute top-0 right-0 -mt-10 -mr-10 h-20 w-20 rounded-full bg-blue-50 opacity-50"></div>
+                        </CardContent>
                     </Card>
 
-                    <Card>
-                        <div className="p-4">
-                            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Active Users</div>
-                            <div className="mt-1 text-2xl font-semibold">{stats.active}</div>
-                        </div>
+                    <Card className="relative overflow-hidden">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Active Users</p>
+                                    <p className="text-3xl font-bold text-gray-900">{stats.active}</p>
+                                </div>
+                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+                                    <Shield className="h-6 w-6 text-green-600" />
+                                </div>
+                            </div>
+                            <div className="absolute top-0 right-0 -mt-10 -mr-10 h-20 w-20 rounded-full bg-green-50 opacity-50"></div>
+                        </CardContent>
                     </Card>
 
-                    <Card>
-                        <div className="p-4">
-                            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Teachers</div>
-                            <div className="mt-1 text-2xl font-semibold">{stats.teachers}</div>
-                        </div>
+                    <Card className="relative overflow-hidden">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Teachers</p>
+                                    <p className="text-3xl font-bold text-gray-900">{stats.teachers}</p>
+                                </div>
+                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100">
+                                    <GraduationCap className="h-6 w-6 text-purple-600" />
+                                </div>
+                            </div>
+                            <div className="absolute top-0 right-0 -mt-10 -mr-10 h-20 w-20 rounded-full bg-purple-50 opacity-50"></div>
+                        </CardContent>
                     </Card>
 
-                    <Card>
-                        <div className="p-4">
-                            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Students</div>
-                            <div className="mt-1 text-2xl font-semibold">{stats.students}</div>
-                        </div>
+                    <Card className="relative overflow-hidden">
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-muted-foreground">Students</p>
+                                    <p className="text-3xl font-bold text-gray-900">{stats.students}</p>
+                                </div>
+                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-100">
+                                    <BookOpen className="h-6 w-6 text-orange-600" />
+                                </div>
+                            </div>
+                            <div className="absolute top-0 right-0 -mt-10 -mr-10 h-20 w-20 rounded-full bg-orange-50 opacity-50"></div>
+                        </CardContent>
                     </Card>
                 </div>
 

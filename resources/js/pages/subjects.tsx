@@ -47,6 +47,110 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+// Enhanced Pagination Component
+const PaginationComponent = ({
+    currentPage,
+    totalPages,
+    onPageChange,
+}: {
+    currentPage: number;
+    totalPages: number;
+    onPageChange: (page: number) => void;
+}) => {
+    if (totalPages <= 1) return null;
+
+    const getPageNumbers = () => {
+        const pages = [];
+        const maxVisiblePages = 5;
+
+        if (totalPages <= maxVisiblePages) {
+            for (let i = 1; i <= totalPages; i++) {
+                pages.push(i);
+            }
+        } else {
+            if (currentPage <= 3) {
+                for (let i = 1; i <= 5; i++) {
+                    pages.push(i);
+                }
+                if (totalPages > 5) {
+                    pages.push('...');
+                    pages.push(totalPages);
+                }
+            } else if (currentPage >= totalPages - 2) {
+                pages.push(1);
+                if (totalPages > 5) {
+                    pages.push('...');
+                }
+                for (let i = totalPages - 4; i <= totalPages; i++) {
+                    pages.push(i);
+                }
+            } else {
+                pages.push(1);
+                pages.push('...');
+                for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                    pages.push(i);
+                }
+                pages.push('...');
+                pages.push(totalPages);
+            }
+        }
+
+        return pages;
+    };
+
+    const pageNumbers = getPageNumbers();
+
+    return (
+        <div className="mt-6 flex items-center justify-between">
+            <div className="text-sm text-gray-700">
+                Showing page {currentPage} of {totalPages}
+            </div>
+            <div className="flex items-center space-x-1">
+                <Button variant="outline" size="sm" onClick={() => onPageChange(currentPage - 1)} disabled={currentPage === 1} className="px-3 py-2">
+                    <ChevronLeft className="mr-1 h-4 w-4" />
+                    Previous
+                </Button>
+
+                {pageNumbers.map((page, index) => {
+                    if (page === '...') {
+                        return (
+                            <span key={`ellipsis-${index}`} className="px-3 py-2 text-gray-500">
+                                ...
+                            </span>
+                        );
+                    }
+
+                    const pageNum = page as number;
+                    return (
+                        <Button
+                            key={pageNum}
+                            variant={pageNum === currentPage ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => onPageChange(pageNum)}
+                            className={`min-w-[2.5rem] px-3 py-2 ${
+                                pageNum === currentPage ? 'bg-primary text-primary-foreground' : 'hover:bg-gray-50'
+                            }`}
+                        >
+                            {pageNum}
+                        </Button>
+                    );
+                })}
+
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onPageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-2"
+                >
+                    Next
+                    <ChevronRight className="ml-1 h-4 w-4" />
+                </Button>
+            </div>
+        </div>
+    );
+};
+
 export default function Subjects({ subjects: initialSubjects }: { subjects: Subject[] }) {
     const [subjects, setSubjects] = useState<Subject[]>(initialSubjects);
     const [searchTerm, setSearchTerm] = useState('');
@@ -254,72 +358,6 @@ export default function Subjects({ subjects: initialSubjects }: { subjects: Subj
         return dateString ? new Date(dateString).toLocaleDateString() : '';
     };
 
-    // Modern Compact Pagination
-    function Pagination({
-        currentPage,
-        totalPages,
-        onPageChange,
-    }: {
-        currentPage: number;
-        totalPages: number;
-        onPageChange: (page: number) => void;
-    }) {
-        if (totalPages <= 1) return null;
-        const pageNumbers: (number | string)[] = [];
-        const maxVisible = 5;
-        if (totalPages <= maxVisible) {
-            for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
-        } else {
-            pageNumbers.push(1);
-            if (currentPage > 3) pageNumbers.push('...');
-            const start = Math.max(2, currentPage - 1);
-            const end = Math.min(totalPages - 1, currentPage + 1);
-            for (let i = start; i <= end; i++) pageNumbers.push(i);
-            if (currentPage < totalPages - 2) pageNumbers.push('...');
-            pageNumbers.push(totalPages);
-        }
-        return (
-            <div className="flex items-center justify-center gap-2 py-4">
-                <button
-                    className="flex items-center gap-1 rounded-lg border px-4 py-2 text-base font-medium text-gray-600 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300"
-                    onClick={() => onPageChange(currentPage - 1)}
-                    disabled={currentPage === 1}
-                >
-                    <ChevronLeft className="h-4 w-4" /> Previous
-                </button>
-                <div className="flex items-center gap-1">
-                    {pageNumbers.map((page, idx) =>
-                        page === '...' ? (
-                            <span key={idx} className="px-2 text-lg text-gray-400">
-                                ...
-                            </span>
-                        ) : (
-                            <button
-                                key={page}
-                                className={`h-10 w-10 rounded-lg border text-base font-medium transition-colors ${
-                                    page === currentPage
-                                        ? 'bg-black text-white shadow dark:bg-white dark:text-black'
-                                        : 'bg-white text-black hover:bg-gray-100 dark:bg-gray-900 dark:text-white dark:hover:bg-gray-800'
-                                } dark:border-gray-700`}
-                                onClick={() => onPageChange(Number(page))}
-                                disabled={page === currentPage}
-                            >
-                                {page}
-                            </button>
-                        ),
-                    )}
-                </div>
-                <button
-                    className="flex items-center gap-1 rounded-lg border px-4 py-2 text-base font-medium text-gray-600 disabled:opacity-50 dark:border-gray-700 dark:text-gray-300"
-                    onClick={() => onPageChange(currentPage + 1)}
-                    disabled={currentPage === totalPages}
-                >
-                    Next <ChevronRight className="h-4 w-4" />
-                </button>
-            </div>
-        );
-    }
-
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Subjects" />
@@ -485,7 +523,7 @@ export default function Subjects({ subjects: initialSubjects }: { subjects: Subj
                     )}
                 </div>
 
-                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+                {totalPages > 1 && <PaginationComponent currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />}
             </div>
             <Toaster position="top-right" richColors closeButton />
         </AppLayout>

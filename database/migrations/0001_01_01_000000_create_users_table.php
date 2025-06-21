@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('role')->default('student');
             $table->string('status')->default('active');
             $table->timestamp('email_verified_at')->nullable();
-            $table->string('password')->default(hash('sha256', 'SuperSecure@123'));
+            $table->string('password')->default(bcrypt('SuperSecure@123'));
             $table->rememberToken();
             $table->timestamps();
         });
