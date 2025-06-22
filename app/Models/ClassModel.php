@@ -21,6 +21,8 @@ class ClassModel extends Model
         'max_students',
         'start_time',
         'end_time',
+        'start_date',
+        'end_date',
     ];
 
     public function subject()

@@ -14,6 +14,8 @@ class LocationFactory extends Factory
             'latitude' => fake()->latitude(),
             'longitude' => fake()->longitude(),
             'address' => fake()->address(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ];
     }
 }

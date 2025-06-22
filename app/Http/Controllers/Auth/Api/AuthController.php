@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\ClassModel;
 use App\Exceptions\MessageError;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 class AuthController extends Controller
@@ -61,5 +62,45 @@ class AuthController extends Controller
             ],
             'token'   => $token,
         ], 201);
+    }
+
+    public function login(Request $request)
+    {
+        $data = $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required|string',
+        ]);
+
+        $user = User::where('email', $data['email'])->first();
+
+        if (!$user || !Hash::check($data['password'], $user->password)) {
+            throw new MessageError('Invalid credentials.');
+        }
+
+        $token = $user->createToken('api')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Login successful',
+            'user'    => [
+                'id'    => $user->id,
+                'name'  => $user->name,
+                'email' => $user->email,
+                'role'  => $user->role,
+            ],
+            'token'   => $token,
+        ]);
+    }
+
+    public function logout(Request $request)
+    {
+        $user = $request->user();
+
+        if (!$user) {
+            throw new MessageError('User not authenticated.');
+        }
+
+        $user->tokens()->delete();
+
+        return response()->json(['message' => 'Logged out successfully']);
     }
 }

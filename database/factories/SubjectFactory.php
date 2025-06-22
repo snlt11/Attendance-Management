@@ -12,6 +12,8 @@ class SubjectFactory extends Factory
             'name' => fake()->word(),
             'code' => fake()->unique()->bothify('SUB###'),
             'description' => fake()->sentence(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ]; 
     }
 }
