@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\Helper;
 use App\Models\ClassModel;
+use App\Models\ClassSchedule;
 use App\Models\Location;
 use App\Models\Subject;
 use App\Models\User;
@@ -18,19 +19,40 @@ class ClassController extends Controller
     public function index(Request $request)
     {
         try {
-            $query = ClassModel::with(['subject', 'teacher', 'location'])
+            $query = ClassModel::with(['subject', 'teacher', 'location', 'schedules'])
                 ->when($request->search, function ($query, $search) {
                     $query->where(function ($q) use ($search) {
                         $q->whereHas('subject', function ($q) use ($search) {
                             $q->where('name', 'like', "%{$search}%");
                         })->orWhereHas('teacher', function ($q) use ($search) {
                             $q->where('name', 'like', "%{$search}%");
-                        });
+                        })->orWhere('name', 'like', "%{$search}%");
                     });
                 })
                 ->latest();
 
             $classes = $query->paginate(9)->withQueryString();
+
+            // Transform classes to include schedule info for frontend compatibility
+            $classes->getCollection()->transform(function ($class) {
+                // Get the first schedule for display (you can modify this logic)
+                $firstSchedule = $class->schedules->first();
+                $class->start_time = $firstSchedule ? $firstSchedule->start_time : '';
+                $class->end_time = $firstSchedule ? $firstSchedule->end_time : '';
+                $class->day_of_week = $firstSchedule ? $firstSchedule->day_of_week : '';
+
+                // Add schedules array for full schedule info
+                $class->class_schedules = $class->schedules->map(function ($schedule) {
+                    return [
+                        'id' => $schedule->id,
+                        'day_of_week' => $schedule->day_of_week,
+                        'start_time' => $schedule->start_time,
+                        'end_time' => $schedule->end_time,
+                    ];
+                });
+
+                return $class;
+            });
 
             if ($request->wantsJson()) {
                 return response()->json($classes);
@@ -59,66 +81,115 @@ class ClassController extends Controller
                 ->where('role', 'teacher')
                 ->firstOrFail();
 
-            // Then validate all other fields
+            // Validate all fields including schedules
             $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'description' => 'nullable|string',
                 'subject_id' => 'required|exists:subjects,id',
                 'user_id' => 'required|exists:users,id',
                 'location_id' => 'required|exists:locations,id',
-                'start_time' => 'required|date_format:H:i',
-                'end_time' => 'required|date_format:H:i|after:start_time',
+                'start_date' => 'required|date',
+                'end_date' => 'required|date|after:start_date',
+                'max_students' => 'nullable|integer|min:1',
+                'schedules' => 'required|array|min:1',
+                'schedules.*.day_of_week' => 'required|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
+                'schedules.*.start_time' => 'required|date_format:H:i',
+                'schedules.*.end_time' => 'required|date_format:H:i|after:schedules.*.start_time',
             ]);
 
-            // Check for scheduling conflicts with more details
-            $conflictingClass = ClassModel::with(['subject', 'teacher'])
-                ->where('user_id', $validated['user_id'])
-                ->where(function ($query) use ($validated) {
-                    $query->where(function ($q) use ($validated) {
-                        $q->where('start_time', '<=', $validated['start_time'])
-                            ->where('end_time', '>', $validated['start_time']);
-                    })->orWhere(function ($q) use ($validated) {
-                        $q->where('start_time', '<', $validated['end_time'])
-                            ->where('end_time', '>=', $validated['end_time']);
-                    });
-                })
-                ->first();
+            DB::beginTransaction();
 
-            if ($conflictingClass) {
-                $conflictMessage = sprintf(
-                    'The teacher already has a class "%s" scheduled from %s to %s.',
-                    $conflictingClass->subject->name,
-                    date('g:i A', strtotime($conflictingClass->start_time)),
-                    date('g:i A', strtotime($conflictingClass->end_time))
-                );
+            // Check for scheduling conflicts
+            foreach ($validated['schedules'] as $schedule) {
+                $conflictingClass = ClassSchedule::with(['class.subject', 'class.teacher'])
+                    ->whereHas('class', function ($query) use ($validated) {
+                        $query->where('user_id', $validated['user_id']);
+                    })
+                    ->where('day_of_week', $schedule['day_of_week'])
+                    ->where(function ($query) use ($schedule) {
+                        $query->where(function ($q) use ($schedule) {
+                            $q->where('start_time', '<=', $schedule['start_time'])
+                                ->where('end_time', '>', $schedule['start_time']);
+                        })->orWhere(function ($q) use ($schedule) {
+                            $q->where('start_time', '<', $schedule['end_time'])
+                                ->where('end_time', '>=', $schedule['end_time']);
+                        });
+                    })
+                    ->first();
 
-                return response()->json([
-                    'message' => 'Failed to create class',
-                    'errors' => ['time' => [$conflictMessage]]
-                ], 422);
+                if ($conflictingClass) {
+                    $conflictMessage = sprintf(
+                        'The teacher already has a class "%s" scheduled on %s from %s to %s.',
+                        $conflictingClass->class->subject->name,
+                        ucfirst($schedule['day_of_week']),
+                        date('g:i A', strtotime($schedule['start_time'])),
+                        date('g:i A', strtotime($schedule['end_time']))
+                    );
+
+                    return response()->json([
+                        'message' => 'Failed to create class',
+                        'errors' => ['schedules' => [$conflictMessage]]
+                    ], 422);
+                }
             }
+
+            // Generate registration code
             $registration_code = Helper::generate();
             $validated['registration_code'] = $registration_code;
+            logger()->info('Generated registration code: ' . $registration_code);
+            logger()->info('Validated data: ', $validated);
 
             // Create the class
-            $class = ClassModel::create($validated);
+            $class = ClassModel::create([
+                'name' => $validated['name'],
+                'description' => $validated['description'],
+                'subject_id' => $validated['subject_id'],
+                'user_id' => $validated['user_id'],
+                'location_id' => $validated['location_id'],
+                'start_date' => $validated['start_date'],
+                'end_date' => $validated['end_date'],
+                'max_students' => $validated['max_students'] ?? 30,
+                'registration_code' => $registration_code,
+                'status' => 'active',
+            ]);
 
-            // Load relationships
-            $class->load(['subject', 'teacher', 'location']);
+            // Create schedules
+            foreach ($validated['schedules'] as $schedule) {
+                $class->schedules()->create([
+                    'day_of_week' => $schedule['day_of_week'],
+                    'start_time' => $schedule['start_time'],
+                    'end_time' => $schedule['end_time'],
+                ]);
+            }
+
+            DB::commit();
+
+            // Load relationships and transform for frontend
+            $class->load(['subject', 'teacher', 'location', 'schedules']);
+            $firstSchedule = $class->schedules->first();
+            $class->start_time = $firstSchedule ? $firstSchedule->start_time : '';
+            $class->end_time = $firstSchedule ? $firstSchedule->end_time : '';
+            $class->day_of_week = $firstSchedule ? $firstSchedule->day_of_week : '';
+            $class->class_schedules = $class->schedules;
 
             return response()->json([
                 'message' => 'Class created successfully',
                 'class' => $class
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
             return response()->json([
                 'message' => 'Failed to create class',
                 'errors' => $e->errors()
             ], 422);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            DB::rollBack();
             return response()->json([
                 'message' => 'Failed to create class',
                 'errors' => ['user_id' => ['Selected teacher not found or is not a teacher.']]
             ], 422);
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error('Class creation failed: ' . $e->getMessage(), [
                 'request' => $request->all(),
                 'trace' => $e->getTraceAsString()
@@ -135,22 +206,95 @@ class ClassController extends Controller
     {
         try {
             $validated = $request->validate([
+                'name' => 'required|string|max:255',
+                'description' => 'nullable|string',
                 'subject_id' => 'required|exists:subjects,id',
                 'user_id' => 'required|exists:users,id',
                 'location_id' => 'required|exists:locations,id',
-                'start_time' => 'required|date_format:H:i',
-                'end_time' => 'required|date_format:H:i|after:start_time',
+                'start_date' => 'required|date',
+                'end_date' => 'required|date|after:start_date',
+                'max_students' => 'nullable|integer|min:1',
+                'schedules' => 'required|array|min:1',
+                'schedules.*.day_of_week' => 'required|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
+                'schedules.*.start_time' => 'required|date_format:H:i',
+                'schedules.*.end_time' => 'required|date_format:H:i|after:schedules.*.start_time',
             ]);
 
-            $class->update($validated);
+            DB::beginTransaction();
 
-            $class->load(['subject', 'teacher', 'location']);
+            // Check for scheduling conflicts (excluding current class)
+            foreach ($validated['schedules'] as $schedule) {
+                $conflictingClass = ClassSchedule::with(['class.subject', 'class.teacher'])
+                    ->whereHas('class', function ($query) use ($validated, $class) {
+                        $query->where('user_id', $validated['user_id'])
+                            ->where('id', '!=', $class->id);
+                    })
+                    ->where('day_of_week', $schedule['day_of_week'])
+                    ->where(function ($query) use ($schedule) {
+                        $query->where(function ($q) use ($schedule) {
+                            $q->where('start_time', '<=', $schedule['start_time'])
+                                ->where('end_time', '>', $schedule['start_time']);
+                        })->orWhere(function ($q) use ($schedule) {
+                            $q->where('start_time', '<', $schedule['end_time'])
+                                ->where('end_time', '>=', $schedule['end_time']);
+                        });
+                    })
+                    ->first();
+
+                if ($conflictingClass) {
+                    $conflictMessage = sprintf(
+                        'The teacher already has a class "%s" scheduled on %s from %s to %s.',
+                        $conflictingClass->class->subject->name,
+                        ucfirst($schedule['day_of_week']),
+                        date('g:i A', strtotime($schedule['start_time'])),
+                        date('g:i A', strtotime($schedule['end_time']))
+                    );
+
+                    return response()->json([
+                        'message' => 'Failed to update class',
+                        'errors' => ['schedules' => [$conflictMessage]]
+                    ], 422);
+                }
+            }
+
+            // Update class
+            $class->update([
+                'name' => $validated['name'],
+                'description' => $validated['description'],
+                'subject_id' => $validated['subject_id'],
+                'user_id' => $validated['user_id'],
+                'location_id' => $validated['location_id'],
+                'start_date' => $validated['start_date'],
+                'end_date' => $validated['end_date'],
+                'max_students' => $validated['max_students'] ?? 30,
+            ]);
+
+            // Delete existing schedules and create new ones
+            $class->schedules()->delete();
+            foreach ($validated['schedules'] as $schedule) {
+                $class->schedules()->create([
+                    'day_of_week' => $schedule['day_of_week'],
+                    'start_time' => $schedule['start_time'],
+                    'end_time' => $schedule['end_time'],
+                ]);
+            }
+
+            DB::commit();
+
+            // Load relationships and transform for frontend
+            $class->load(['subject', 'teacher', 'location', 'schedules']);
+            $firstSchedule = $class->schedules->first();
+            $class->start_time = $firstSchedule ? $firstSchedule->start_time : '';
+            $class->end_time = $firstSchedule ? $firstSchedule->end_time : '';
+            $class->day_of_week = $firstSchedule ? $firstSchedule->day_of_week : '';
+            $class->class_schedules = $class->schedules;
 
             return response()->json([
                 'message' => 'Class updated successfully',
                 'class' => $class
             ]);
         } catch (\Exception $e) {
+            DB::rollBack();
             return response()->json([
                 'message' => 'Failed to update class',
                 'errors' => $e instanceof \Illuminate\Validation\ValidationException ? $e->errors() : ['general' => [$e->getMessage()]]
@@ -163,13 +307,21 @@ class ClassController extends Controller
         try {
             DB::beginTransaction();
 
+            // Delete attendances first
             $class->sessions()->each(function ($session) {
                 DB::table('attendances')->where('class_session_id', $session->id)->delete();
             });
+
+            // Delete sessions
             $class->sessions()->delete();
 
+            // Delete schedules
+            $class->schedules()->delete();
+
+            // Delete student enrollments
             DB::table('class_students')->where('class_id', $class->id)->delete();
 
+            // Delete the class
             $class->forceDelete();
 
             DB::commit();
@@ -196,47 +348,62 @@ class ClassController extends Controller
         try {
             DB::beginTransaction();
 
-            try {
-                $session = DB::table('class_sessions')
-                    ->where('class_id', $class->id)
-                    ->where('session_date', now()->toDateString())
-                    ->first();
+            // Get today with myanmar timezone
+            $today = now()->setTimezone('Asia/Yangon')->format('l'); //Full day name (Monday, Tuesday, etc.)
 
-                $token = Str::random(32);
-                $expiresAt = now()->addMinutes(5);
+            $todaySchedule = $class->schedules()
+                ->where('day_of_week', strtolower($today))
+                ->first();
 
-                if ($session) {
-                    DB::table('class_sessions')
-                        ->where('id', $session->id)
-                        ->update([
-                            'qr_token' => $token,
-                            'expires_at' => $expiresAt,
-                            'updated_at' => now()
-                        ]);
-                } else {
-                    DB::table('class_sessions')->insert([
-                        'id' => Str::uuid(),
-                        'class_id' => $class->id,
-                        'session_date' => now()->toDateString(),
-                        'qr_token' => $token,
-                        'expires_at' => $expiresAt,
-                        'created_at' => now(),
-                        'updated_at' => now()
-                    ]);
-                }
-
-                DB::commit();
-
+            if (!$todaySchedule) {
                 return response()->json([
+                    'message' => 'No class scheduled for today',
+                    'error' => 'This class is not scheduled to run today.'
+                ], 422);
+            }
+
+            // Find or create session for today with specific start and end times
+            $session = $class->sessions()
+                ->where('session_date', now()->toDateString())
+                ->where('start_time', $todaySchedule->start_time)
+                ->where('end_time', $todaySchedule->end_time)
+                ->first();
+
+            $token = Str::random(32);
+            $expiresAt = now()->addMinutes(5);
+
+            if ($session) {
+                $session->update([
                     'qr_token' => $token,
                     'expires_at' => $expiresAt,
-                    'message' => 'QR code generated successfully'
+                    'status' => 'active'
                 ]);
-            } catch (\Exception $e) {
-                DB::rollBack();
-                throw $e;
+            } else {
+                $session = $class->sessions()->create([
+                    'class_schedule_id' => $todaySchedule->id,
+                    'session_date' => now()->toDateString(),
+                    'start_time' => $todaySchedule->start_time,
+                    'end_time' => $todaySchedule->end_time,
+                    'status' => 'active',
+                    'qr_token' => $token,
+                    'expires_at' => $expiresAt,
+                ]);
             }
+
+            DB::commit();
+
+            return response()->json([
+                'qr_token' => $token,
+                'expires_at' => $expiresAt,
+                'message' => 'QR code generated successfully'
+            ]);
         } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('QR generation failed: ' . $e->getMessage(), [
+                'class_id' => $class->id,
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return response()->json([
                 'message' => 'Failed to generate QR code',
                 'error' => app()->environment('local') ? $e->getMessage() : 'An unexpected error occurred. Please try again.'

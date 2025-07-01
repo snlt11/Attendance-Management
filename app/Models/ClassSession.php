@@ -12,7 +12,11 @@ class ClassSession extends Model
 
     protected $fillable = [
         'class_id',
+        'class_schedule_id',
         'session_date',
+        'start_time',
+        'end_time',
+        'status',
         'qr_token',
         'expires_at'
     ];

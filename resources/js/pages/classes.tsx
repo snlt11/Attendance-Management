@@ -16,12 +16,11 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TimePicker } from '@/components/ui/time-picker';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import { debounce } from 'lodash';
-import { BookOpen, ChevronLeft, ChevronRight, Edit, Loader2, Plus, QrCode, Search, Trash2 } from 'lucide-react';
+import { BookOpen, ChevronLeft, ChevronRight, Edit, Loader2, Plus, QrCode, Search, Trash2, X } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
@@ -42,8 +41,17 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+interface ClassSchedule {
+    id: string;
+    day_of_week: string;
+    start_time: string;
+    end_time: string;
+}
+
 interface ClassItem {
     id: string;
+    name: string;
+    description?: string;
     subject: { id: string; name: string; code?: string };
     teacher: { id: string; name: string };
     location: { id: string; name: string };
@@ -51,8 +59,15 @@ interface ClassItem {
     subject_id: string;
     user_id: string;
     location_id: string;
+    start_date: string;
+    end_date: string;
+    max_students: number;
+    // For backward compatibility
     start_time: string;
     end_time: string;
+    day_of_week: string;
+    // New schedule structure
+    class_schedules: ClassSchedule[];
     created_at: string;
 }
 
@@ -239,11 +254,21 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
     }, [qrExpiryTime, isQRModalOpen, currentQRClass]);
 
     const [formData, setFormData] = useState({
+        name: '',
+        description: '',
         subject_id: '',
         user_id: '',
         location_id: '',
-        start_time: '',
-        end_time: '',
+        start_date: '',
+        end_date: '',
+        max_students: 0,
+        schedules: [
+            {
+                day_of_week: '',
+                start_time: '',
+                end_time: '',
+            },
+        ],
     });
 
     const loadClasses = async (page: number, search?: string) => {
@@ -289,25 +314,40 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
 
     const validateForm = () => {
         const newErrors: Record<string, string[]> = {};
+
+        if (!formData.name.trim()) newErrors.name = ['Class name is required'];
         if (!formData.subject_id) newErrors.subject_id = ['Please select a subject'];
         if (!formData.user_id) newErrors.user_id = ['Please select a teacher'];
         if (!formData.location_id) newErrors.location_id = ['Please select a location'];
-        if (!formData.start_time) newErrors.start_time = ['Please select a start time'];
-        if (!formData.end_time) newErrors.end_time = ['Please select an end time'];
-        const startTimeParts = formData.start_time?.split(' ')[0]?.split(':').map(Number);
-        const endTimeParts = formData.end_time?.split(' ')[0]?.split(':').map(Number);
+        if (!formData.start_date) newErrors.start_date = ['Please select start date'];
+        if (!formData.end_date) newErrors.end_date = ['Please select end date'];
 
-        if (startTimeParts && startTimeParts.length === 2 && endTimeParts && endTimeParts.length === 2) {
-            const startMinutes = startTimeParts[0] * 60 + startTimeParts[1];
-            const endMinutes = endTimeParts[0] * 60 + endTimeParts[1];
-
-            if (startMinutes >= endMinutes) {
-                newErrors.end_time = ['End time must be after start time'];
-            }
-        } else {
-            if (!formData.start_time) newErrors.start_time = ['Please select a valid start time'];
-            if (!formData.end_time) newErrors.end_time = ['Please select a valid end time'];
+        // Validate date range
+        if (formData.start_date && formData.end_date && formData.start_date >= formData.end_date) {
+            newErrors.end_date = ['End date must be after start date'];
         }
+
+        // Validate schedules
+        if (formData.schedules.length === 0) {
+            newErrors.schedules = ['At least one schedule is required'];
+        }
+
+        formData.schedules.forEach((schedule, index) => {
+            if (!schedule.day_of_week) {
+                newErrors[`schedules.${index}.day_of_week`] = ['Please select a day'];
+            }
+            if (!schedule.start_time) {
+                newErrors[`schedules.${index}.start_time`] = ['Please select start time'];
+            }
+            if (!schedule.end_time) {
+                newErrors[`schedules.${index}.end_time`] = ['Please select end time'];
+            }
+
+            // Validate time range
+            if (schedule.start_time && schedule.end_time && schedule.start_time >= schedule.end_time) {
+                newErrors[`schedules.${index}.end_time`] = ['End time must be after start time'];
+            }
+        });
 
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -327,8 +367,8 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
 
             const formattedData = {
                 ...formData,
-                start_time: formData.start_time,
-                end_time: formData.end_time,
+                start_date: formData.start_date ? new Date(formData.start_date).toISOString().slice(0, 10) : '',
+                end_date: formData.end_date ? new Date(formData.end_date).toISOString().slice(0, 10) : '',
             };
 
             const response = await fetch(url, {
@@ -390,11 +430,22 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
         setEditingClass(classItem);
         setIsEditing(true);
         setFormData({
+            name: classItem.name || '',
+            description: classItem.description || '',
             subject_id: classItem.subject_id,
             user_id: classItem.user_id,
             location_id: classItem.location_id,
-            start_time: classItem.start_time,
-            end_time: classItem.end_time,
+            start_date: classItem.start_date || '',
+            end_date: classItem.end_date || '',
+            max_students: classItem.max_students,
+            schedules:
+                classItem.class_schedules && classItem.class_schedules.length > 0
+                    ? classItem.class_schedules.map((schedule) => ({
+                          day_of_week: schedule.day_of_week,
+                          start_time: schedule.start_time,
+                          end_time: schedule.end_time,
+                      }))
+                    : [{ day_of_week: '', start_time: '', end_time: '' }],
         });
         setIsDialogOpen(true);
     };
@@ -513,11 +564,15 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
 
     const resetForm = () => {
         setFormData({
+            name: '',
+            description: '',
             subject_id: '',
             user_id: '',
             location_id: '',
-            start_time: '',
-            end_time: '',
+            start_date: '',
+            end_date: '',
+            max_students: 0,
+            schedules: [{ day_of_week: '', start_time: '', end_time: '' }],
         });
         setIsEditing(false);
         setEditingClass(null);
@@ -531,6 +586,49 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
         return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
     };
 
+    // Schedule management functions
+    const addSchedule = () => {
+        setFormData((prev) => ({
+            ...prev,
+            schedules: [...prev.schedules, { day_of_week: '', start_time: '', end_time: '' }],
+        }));
+    };
+
+    const removeSchedule = (index: number) => {
+        if (formData.schedules.length > 1) {
+            setFormData((prev) => ({
+                ...prev,
+                schedules: prev.schedules.filter((_, i) => i !== index),
+            }));
+        }
+    };
+
+    const updateSchedule = (index: number, field: string, value: string) => {
+        setFormData((prev) => ({
+            ...prev,
+            schedules: prev.schedules.map((schedule, i) => (i === index ? { ...schedule, [field]: value } : schedule)),
+        }));
+
+        // Clear errors for this field
+        setErrors((prev) => {
+            const newErrors = { ...prev };
+            delete newErrors[`schedules.${index}.${field}`];
+            return newErrors;
+        });
+    };
+
+    // Format schedules for display
+    const formatSchedules = (schedules: ClassSchedule[]) => {
+        if (!schedules || schedules.length === 0) return 'No schedule';
+
+        return schedules
+            .map(
+                (schedule) =>
+                    `${schedule.day_of_week.charAt(0).toUpperCase() + schedule.day_of_week.slice(1)}: ${formatTimeToAMPM(schedule.start_time)} - ${formatTimeToAMPM(schedule.end_time)}`,
+            )
+            .join(', ');
+    };
+
     const ClassCard = ({ classItem }: { classItem: ClassItem }) => {
         return (
             <div className="group relative rounded-lg border bg-card p-6 shadow-sm transition-all hover:shadow-md dark:border-gray-800 dark:bg-gray-800/50 dark:hover:bg-gray-800/70">
@@ -538,7 +636,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                     <div className="space-y-3">
                         <div className="space-y-1">
                             <h3 className="text-xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
-                                {classItem.subject.name}
+                                {classItem.name || classItem.subject.name}
                                 {classItem.subject.code && (
                                     <span className="ml-2 text-sm font-normal text-muted-foreground dark:text-gray-400">
                                         ({classItem.subject.code})
@@ -546,7 +644,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                 )}
                             </h3>
                             <div className="text-sm text-muted-foreground dark:text-gray-400">
-                                Teaching of {classItem.subject.name} by {classItem.teacher?.name}
+                                {classItem.description || `Teaching of ${classItem.subject.name} by ${classItem.teacher?.name}`}
                             </div>
                         </div>
 
@@ -566,9 +664,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                     />
                                     <path d="M12 7V12L15 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
-                                <span>
-                                    {formatTimeToAMPM(classItem.start_time)} - {formatTimeToAMPM(classItem.end_time)}
-                                </span>
+                                <span className="text-xs">{formatSchedules(classItem.class_schedules)}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -675,7 +771,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                     Create New Class
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-2xl">
+                            <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
                                 <DialogHeader>
                                     <DialogTitle>{isEditing ? 'Edit Class' : 'Create New Class'}</DialogTitle>
                                     <DialogDescription>
@@ -686,6 +782,40 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                 </DialogHeader>
                                 <form onSubmit={handleSubmit} className="space-y-4">
                                     <div className="space-y-4">
+                                        {/* Class Name */}
+                                        <div className="space-y-2">
+                                            <Label htmlFor="name">Class Name</Label>
+                                            <Input
+                                                id="name"
+                                                value={formData.name}
+                                                onChange={(e) => {
+                                                    setFormData((prev) => ({ ...prev, name: e.target.value }));
+                                                    setErrors((prev) => {
+                                                        const newErrors = { ...prev };
+                                                        delete newErrors.name;
+                                                        return newErrors;
+                                                    });
+                                                }}
+                                                placeholder="Enter class name"
+                                            />
+                                            {errors.name?.map((error, index) => (
+                                                <p key={index} className="text-sm text-red-600">
+                                                    {error}
+                                                </p>
+                                            ))}
+                                        </div>
+
+                                        {/* Description */}
+                                        <div className="space-y-2">
+                                            <Label htmlFor="description">Description (Optional)</Label>
+                                            <Input
+                                                id="description"
+                                                value={formData.description}
+                                                onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+                                                placeholder="Enter class description"
+                                            />
+                                        </div>
+
                                         <div className="space-y-2">
                                             <Label htmlFor="subject_id">Subject</Label>
                                             <Select
@@ -779,36 +909,158 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                             ))}
                                         </div>
 
+                                        {/* Date Range */}
                                         <div className="grid grid-cols-2 gap-4">
-                                            <TimePicker
-                                                label="Start Time"
-                                                id="start_time"
-                                                value={formData.start_time}
-                                                onChange={(value) => {
-                                                    setFormData((prev) => ({ ...prev, start_time: value }));
-                                                    setErrors((prev) => {
-                                                        const newErrors = { ...prev };
-                                                        delete newErrors.start_time;
-                                                        return newErrors;
-                                                    });
-                                                }}
-                                                error={errors.start_time}
-                                            />
+                                            <div className="space-y-2">
+                                                <Label htmlFor="start_date">Start Date</Label>
+                                                <Input
+                                                    id="start_date"
+                                                    type="date"
+                                                    value={formData.start_date}
+                                                    onChange={(e) => {
+                                                        setFormData((prev) => ({ ...prev, start_date: e.target.value }));
+                                                        setErrors((prev) => {
+                                                            const newErrors = { ...prev };
+                                                            delete newErrors.start_date;
+                                                            return newErrors;
+                                                        });
+                                                    }}
+                                                />
+                                                {errors.start_date?.map((error, index) => (
+                                                    <p key={index} className="text-sm text-red-600">
+                                                        {error}
+                                                    </p>
+                                                ))}
+                                            </div>
 
-                                            <TimePicker
-                                                label="End Time"
-                                                id="end_time"
-                                                value={formData.end_time}
-                                                onChange={(value) => {
-                                                    setFormData((prev) => ({ ...prev, end_time: value }));
-                                                    setErrors((prev) => {
-                                                        const newErrors = { ...prev };
-                                                        delete newErrors.end_time;
-                                                        return newErrors;
-                                                    });
+                                            <div className="space-y-2">
+                                                <Label htmlFor="end_date">End Date</Label>
+                                                <Input
+                                                    id="end_date"
+                                                    type="date"
+                                                    value={formData.end_date}
+                                                    onChange={(e) => {
+                                                        setFormData((prev) => ({ ...prev, end_date: e.target.value }));
+                                                        setErrors((prev) => {
+                                                            const newErrors = { ...prev };
+                                                            delete newErrors.end_date;
+                                                            return newErrors;
+                                                        });
+                                                    }}
+                                                />
+                                                {errors.end_date?.map((error, index) => (
+                                                    <p key={index} className="text-sm text-red-600">
+                                                        {error}
+                                                    </p>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Max Students */}
+                                        <div className="space-y-2">
+                                            <Label htmlFor="max_students">Maximum Students</Label>
+                                            <Input
+                                                id="max_students"
+                                                type="number"
+                                                min="1"
+                                                value={formData.max_students === 0 ? '' : formData.max_students}
+                                                onChange={(e) => {
+                                                    const value = e.target.value;
+                                                    setFormData((prev) => ({ ...prev, max_students: value === '' ? 0 : parseInt(value) }));
                                                 }}
-                                                error={errors.end_time}
+                                                placeholder="Enter maximum students"
                                             />
+                                            {errors.max_students?.map((error, index) => (
+                                                <p key={index} className="text-sm text-red-600">
+                                                    {error}
+                                                </p>
+                                            ))}
+                                        </div>
+
+                                        {/* Schedules */}
+                                        <div className="space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <Label>Class Schedule</Label>
+                                                <Button type="button" variant="outline" size="sm" onClick={addSchedule}>
+                                                    <Plus className="mr-2 h-4 w-4" />
+                                                    Add Schedule
+                                                </Button>
+                                            </div>
+
+                                            {formData.schedules.map((schedule, index) => (
+                                                <div key={index} className="space-y-4 rounded-lg border p-4">
+                                                    <div className="flex items-center justify-between">
+                                                        <h4 className="text-sm font-medium">Schedule {index + 1}</h4>
+                                                        {formData.schedules.length > 1 && (
+                                                            <Button type="button" variant="outline" size="sm" onClick={() => removeSchedule(index)}>
+                                                                <X className="h-4 w-4" />
+                                                            </Button>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="grid grid-cols-3 gap-4">
+                                                        <div className="space-y-2">
+                                                            <Label>Day of Week</Label>
+                                                            <Select
+                                                                value={schedule.day_of_week}
+                                                                onValueChange={(value) => updateSchedule(index, 'day_of_week', value)}
+                                                            >
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder="Select day" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="monday">Monday</SelectItem>
+                                                                    <SelectItem value="tuesday">Tuesday</SelectItem>
+                                                                    <SelectItem value="wednesday">Wednesday</SelectItem>
+                                                                    <SelectItem value="thursday">Thursday</SelectItem>
+                                                                    <SelectItem value="friday">Friday</SelectItem>
+                                                                    <SelectItem value="saturday">Saturday</SelectItem>
+                                                                    <SelectItem value="sunday">Sunday</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                            {errors[`schedules.${index}.day_of_week`]?.map((error, i) => (
+                                                                <p key={i} className="text-sm text-red-600">
+                                                                    {error}
+                                                                </p>
+                                                            ))}
+                                                        </div>
+
+                                                        <div className="space-y-2">
+                                                            <Label>Start Time</Label>
+                                                            <Input
+                                                                type="time"
+                                                                value={schedule.start_time}
+                                                                onChange={(e) => updateSchedule(index, 'start_time', e.target.value)}
+                                                            />
+                                                            {errors[`schedules.${index}.start_time`]?.map((error, i) => (
+                                                                <p key={i} className="text-sm text-red-600">
+                                                                    {error}
+                                                                </p>
+                                                            ))}
+                                                        </div>
+
+                                                        <div className="space-y-2">
+                                                            <Label>End Time</Label>
+                                                            <Input
+                                                                type="time"
+                                                                value={schedule.end_time}
+                                                                onChange={(e) => updateSchedule(index, 'end_time', e.target.value)}
+                                                            />
+                                                            {errors[`schedules.${index}.end_time`]?.map((error, i) => (
+                                                                <p key={i} className="text-sm text-red-600">
+                                                                    {error}
+                                                                </p>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+
+                                            {errors.schedules?.map((error, index) => (
+                                                <p key={index} className="text-sm text-red-600">
+                                                    {error}
+                                                </p>
+                                            ))}
                                         </div>
                                     </div>
 

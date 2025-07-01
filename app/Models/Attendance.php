@@ -12,7 +12,7 @@ class Attendance extends Model
 
     protected $fillable = [
         'class_session_id',
-        'student_id',
+        'user_id',
         'checked_in_at',
         'status'
     ];
@@ -28,6 +28,6 @@ class Attendance extends Model
 
     public function student()
     {
-        return $this->belongsTo(User::class, 'student_id');
+        return $this->belongsTo(User::class, 'user_id')->where('role', 'student');
     }
 }

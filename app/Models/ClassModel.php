@@ -13,16 +13,18 @@ class ClassModel extends Model
     protected $table = 'classes';
 
     protected $fillable = [
+        'id',
         'subject_id',
-        'user_id',
         'location_id',
+        'user_id', // Teacher
+        'name',
+        'code',
+        'description',
         'registration_code',
-        'registration_code_expires_at',
-        'max_students',
-        'start_time',
-        'end_time',
+        'status',
         'start_date',
         'end_date',
+        'max_students',
     ];
 
     public function subject()
@@ -48,5 +50,10 @@ class ClassModel extends Model
     public function sessions()
     {
         return $this->hasMany(ClassSession::class, 'class_id');
+    }
+
+    public function schedules()
+    {
+        return $this->hasMany(ClassSchedule::class, 'class_id');
     }
 }

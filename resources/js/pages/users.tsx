@@ -14,7 +14,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -287,7 +287,7 @@ export default function UserManagement({
             const headers = {
                 'Content-Type': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
             };
 
             let response;
@@ -305,8 +305,17 @@ export default function UserManagement({
                 });
             }
 
-            const data = (await response.json()) as APIResponse<UserItem>;
-            if (!data.success) throw new Error(data.message || 'API error');
+            const data = await response.json();
+
+            if (!response.ok) {
+                if (response.status === 422 && data.errors) {
+                    setErrors(data.errors);
+                    toast.error('Validation failed.');
+                } else {
+                    toast.error(data.message || 'API error');
+                }
+                return;
+            }
 
             if (isEditing && editingUser && data.user) {
                 setUsers((prev) => prev.map((user) => (user.id === editingUser.id ? data.user! : user)));
@@ -321,7 +330,6 @@ export default function UserManagement({
             setIsDialogOpen(false);
             resetForm();
         } catch (error) {
-            console.error('Failed to save user:', error);
             toast.error('Failed to save user. Please try again.');
         } finally {
             setProcessing(false);
@@ -332,17 +340,21 @@ export default function UserManagement({
         if (!userToDelete) return;
 
         try {
+            const headers = {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+            };
             const response = await fetch(`/users/${userToDelete.id}`, {
                 method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '',
-                },
+                headers,
             });
 
-            const data = (await response.json()) as APIResponse<null>;
-            if (!data.success) throw new Error(data.message || 'API error');
+            const data = await response.json();
+            if (!response.ok) {
+                toast.error(data.message || 'API error');
+                return;
+            }
 
             setUsers((prev) => prev.filter((user) => user.id !== userToDelete.id));
             toast.success('User deleted successfully.');
@@ -357,7 +369,6 @@ export default function UserManagement({
             setDeleteDialogOpen(false);
             setUserToDelete(null);
         } catch (error) {
-            console.error('Failed to delete user:', error);
             toast.error('Failed to delete user. Please try again.');
         }
     };
@@ -524,6 +535,11 @@ export default function UserManagement({
                         <DialogContent className="max-w-2xl">
                             <DialogHeader>
                                 <DialogTitle>{isEditing ? 'Edit User' : 'Add New User'}</DialogTitle>
+                                <DialogDescription>
+                                    {isEditing
+                                        ? 'Update the user details below. Fields marked with * are required.'
+                                        : 'Fill in the details to add a new user. Fields marked with * are required.'}
+                                </DialogDescription>
                             </DialogHeader>
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div className="grid grid-cols-2 gap-4">

@@ -11,13 +11,13 @@ return new class extends Migration
         Schema::create('attendances', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('class_session_id')->index();
-            $table->uuid('student_id')->index();
+            $table->uuid('user_id')->index();
             $table->datetime('checked_in_at')->nullable();
             $table->enum('status', ['present', 'late', 'absent']);
             $table->timestamps();
             $table->foreign('class_session_id')->references('id')->on('class_sessions');
-            $table->foreign('student_id')->references('id')->on('users');
-            $table->unique(['class_session_id', 'student_id']);
+            $table->foreign('user_id')->references('id')->on('users');
+            $table->unique(['class_session_id', 'user_id']);
         });
     }
 
