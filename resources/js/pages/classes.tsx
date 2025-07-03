@@ -9,7 +9,6 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-    AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -20,7 +19,7 @@ import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import { debounce } from 'lodash';
-import { BookOpen, ChevronLeft, ChevronRight, Edit, Loader2, Plus, QrCode, Search, Trash2, X } from 'lucide-react';
+import { BookOpen, ChevronLeft, ChevronRight, Edit, Loader2, Plus, QrCode, Search, Trash2, UserPlus, Users, X } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
@@ -69,6 +68,12 @@ interface ClassItem {
     // New schedule structure
     class_schedules: ClassSchedule[];
     created_at: string;
+}
+
+interface Student {
+    id: string;
+    name: string;
+    email: string;
 }
 
 // Enhanced Pagination Component
@@ -217,13 +222,23 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [classToDelete, setClassToDelete] = useState<ClassItem | null>(null);
     const [currentQRClass, setCurrentQRClass] = useState<ClassItem | null>(null);
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+    const [detailsClass, setDetailsClass] = useState<ClassItem | null>(null);
+    const [classStudents, setClassStudents] = useState<Student[]>([]);
+    const [allStudents, setAllStudents] = useState<Student[]>([]);
+    const [isFetchingStudents, setIsFetchingStudents] = useState(false);
+    const [studentToAdd, setStudentToAdd] = useState<string | null>(null);
+    const [isAddingStudent, setIsAddingStudent] = useState(false);
+
     // Countdown timer effect with auto-regeneration
     useEffect(() => {
         if (!qrExpiryTime || !isQRModalOpen || !currentQRClass) return;
 
         const updateRemainingTime = async () => {
             const now = new Date();
-            const diffInSeconds = Math.floor((qrExpiryTime.getTime() - now.getTime()) / 1000);
+            const expiry = new Date(qrExpiryTime);
+
+            const diffInSeconds = Math.floor((expiry.getTime() - now.getTime()) / 1000);
 
             if (diffInSeconds <= 0) {
                 setRemainingTime('Expired');
@@ -271,13 +286,70 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
         ],
     });
 
+    const handleViewDetails = async (classItem: ClassItem) => {
+        setDetailsClass(classItem);
+        setIsDetailsModalOpen(true);
+        setIsFetchingStudents(true);
+        try {
+            const response = await fetch(`/classes/${classItem.id}/students`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch students');
+            }
+            const data = await response.json();
+            setClassStudents(data.students);
+            setAllStudents(data.all_students);
+        } catch (error) {
+            console.error(error);
+            toast.error('Failed to load class details.');
+        } finally {
+            setIsFetchingStudents(false);
+        }
+    };
+
+    const handleAddStudent = async () => {
+        if (!studentToAdd || !detailsClass) return;
+
+        setIsAddingStudent(true);
+
+        try {
+            // Get CSRF token from meta tag
+            const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content;
+            const response = await fetch(`/classes/${detailsClass.id}/students`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': csrfToken || '',
+                },
+                body: JSON.stringify({ user_id: studentToAdd }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || 'Failed to add student.');
+            }
+
+            const responseData = await response.json();
+            const newStudent = allStudents.find((s) => s.id === studentToAdd);
+            if (newStudent) {
+                setClassStudents((prev) => [...prev, newStudent]);
+            }
+            setStudentToAdd(null);
+            toast.success('Student added successfully.');
+        } catch (error: any) {
+            toast.error(error.message);
+        } finally {
+            setIsAddingStudent(false);
+        }
+    };
+
     const loadClasses = async (page: number, search?: string) => {
         setIsLoading(true);
-        try {
-            const params = new URLSearchParams();
-            if (page) params.append('page', page.toString());
-            if (search) params.append('search', search);
+        const params = new URLSearchParams();
+        if (page) params.append('page', page.toString());
+        if (search) params.append('search', search);
 
+        try {
             const response = await fetch(`/classes?${params.toString()}`, {
                 headers: {
                     'Content-Type': 'application/json',
@@ -697,43 +769,40 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                         </div>
                     </div>
 
-                    <div className="flex gap-2 pt-2">
-                        <Button variant="outline" size="sm" onClick={() => handleEdit(classItem)} className="flex-1">
-                            <Edit className="mr-2 h-3.5 w-3.5" />
-                            Edit
-                        </Button>
-                        <AlertDialog open={deleteDialogOpen && classToDelete?.id === classItem.id}>
-                            <AlertDialogTrigger asChild>
+                    <div className="mt-4 flex flex-wrap items-center gap-2">
+                        {auth.user.role === 'teacher' && (
+                            <>
+                                <Button variant="outline" size="sm" onClick={() => handleEdit(classItem)}>
+                                    <Edit className="mr-2 h-4 w-4" />
+                                    Edit
+                                </Button>
                                 <Button
-                                    variant="outline"
+                                    variant="destructive"
                                     size="sm"
-                                    className="flex-1 text-red-600 hover:text-red-700 dark:text-red-500 dark:hover:text-red-400"
-                                    onClick={() => openDeleteDialog(classItem)}
+                                    onClick={() => {
+                                        setClassToDelete(classItem);
+                                        setDeleteDialogOpen(true);
+                                    }}
                                 >
-                                    <Trash2 className="mr-2 h-3.5 w-3.5" />
+                                    <Trash2 className="mr-2 h-4 w-4" />
                                     Delete
                                 </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>Delete Class</AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                        Are you sure you want to delete <b>{classToDelete?.subject.name}</b> class? This will also delete all
-                                        attendance records and QR sessions. This action cannot be undone.
-                                    </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel onClick={closeDeleteDialog}>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
-                                        Delete
-                                    </AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-                        <Button variant="outline" size="sm" onClick={() => handleGenerateQR(classItem)} className="flex-1">
-                            <QrCode className="mr-2 h-3.5 w-3.5" />
-                            QR Code
-                        </Button>
+                                <Button variant="outline" size="sm" onClick={() => handleGenerateQR(classItem)}>
+                                    <QrCode className="mr-2 h-4 w-4" />
+                                    QR Code
+                                </Button>
+                                <Button variant="default" size="sm" onClick={() => handleViewDetails(classItem)}>
+                                    <Users className="mr-2 h-4 w-4" />
+                                    Students
+                                </Button>
+                            </>
+                        )}
+                        {auth.user.role === 'student' && (
+                            <Button variant="outline" size="sm" onClick={() => handleGenerateQR(classItem)} className="flex-1">
+                                <QrCode className="mr-2 h-4 w-4" />
+                                Join Class
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -1163,6 +1232,167 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                 </Dialog>
             </div>
             <Toaster position="top-right" richColors closeButton />
+
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Class</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to delete <b>{classToDelete?.subject.name}</b> class? This will also delete all attendance records
+                            and QR sessions. This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={closeDeleteDialog}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Modern View Details Modal */}
+            <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
+                <DialogContent className="max-h-[85vh] overflow-hidden sm:max-w-4xl">
+                    <DialogHeader className="border-b pb-4">
+                        <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
+                            <BookOpen className="h-5 w-5 text-blue-600" />
+                            {detailsClass?.name}
+                        </DialogTitle>
+                        <DialogDescription className="text-gray-600">Manage students enrolled in this class</DialogDescription>
+                    </DialogHeader>
+
+                    {isFetchingStudents ? (
+                        <div className="flex items-center justify-center py-12">
+                            <div className="text-center">
+                                <Loader2 className="mx-auto mb-2 h-8 w-8 animate-spin text-blue-600" />
+                                <p className="text-sm text-gray-500">Loading class details...</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="space-y-6 overflow-y-auto py-4">
+                            {/* Class Info */}
+                            <div className="rounded-lg bg-gray-50 p-4">
+                                <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
+                                    <div>
+                                        <span className="font-medium text-gray-500">Subject:</span>
+                                        <p className="text-gray-900">{detailsClass?.subject.name}</p>
+                                    </div>
+                                    <div>
+                                        <span className="font-medium text-gray-500">Teacher:</span>
+                                        <p className="text-gray-900">{detailsClass?.teacher.name}</p>
+                                    </div>
+                                    <div>
+                                        <span className="font-medium text-gray-500">Location:</span>
+                                        <p className="text-gray-900">{detailsClass?.location.name}</p>
+                                    </div>
+                                    <div>
+                                        <span className="font-medium text-gray-500">Max Students:</span>
+                                        <p className="text-gray-900">{detailsClass?.max_students}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Add Student Section */}
+                            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                                <div className="mb-3 flex items-center gap-2">
+                                    <UserPlus className="h-4 w-4 text-blue-600" />
+                                    <h3 className="font-medium text-blue-900">Add New Student</h3>
+                                </div>
+                                <div className="flex gap-2">
+                                    <Select onValueChange={setStudentToAdd} value={studentToAdd || ''}>
+                                        <SelectTrigger className="flex-1 bg-white">
+                                            <SelectValue placeholder="Select a student to add" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {allStudents
+                                                .filter((s) => !classStudents.some((cs) => cs.id === s.id))
+                                                .map((student) => (
+                                                    <SelectItem key={student.id} value={student.id}>
+                                                        <div className="flex flex-col">
+                                                            <span className="font-medium">{student.name}</span>
+                                                            <span className="text-sm text-gray-500">{student.email}</span>
+                                                        </div>
+                                                    </SelectItem>
+                                                ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <Button
+                                        onClick={handleAddStudent}
+                                        disabled={!studentToAdd || isAddingStudent}
+                                        className="bg-blue-600 hover:bg-blue-700"
+                                    >
+                                        {isAddingStudent ? (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                        ) : (
+                                            <>
+                                                <UserPlus className="mr-2 h-4 w-4" />
+                                                Add
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
+                            </div>
+
+                            {/* Students List */}
+                            <div>
+                                <div className="mb-4 flex items-center justify-between">
+                                    <h3 className="flex items-center gap-2 font-medium text-gray-900">
+                                        <Users className="h-4 w-4 text-gray-600" />
+                                        Enrolled Students ({classStudents.length})
+                                    </h3>
+                                </div>
+
+                                {classStudents.length > 0 ? (
+                                    <div className="overflow-hidden rounded-lg border">
+                                        <div className="max-h-64 overflow-y-auto">
+                                            {classStudents.map((student, index) => (
+                                                <div
+                                                    key={student.id}
+                                                    className={`flex items-center justify-between p-4 ${
+                                                        index !== classStudents.length - 1 ? 'border-b' : ''
+                                                    } transition-colors hover:bg-gray-50`}
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
+                                                            <span className="text-sm font-medium text-blue-600">
+                                                                {student.name.charAt(0).toUpperCase()}
+                                                            </span>
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-medium text-gray-900">{student.name}</p>
+                                                            <p className="text-sm text-gray-500">{student.email}</p>
+                                                        </div>
+                                                    </div>
+                                                    {auth.user.role === 'teacher' && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                                                            onClick={() => {
+                                                                // TODO: Implement remove student functionality
+                                                                toast.info('Remove student functionality coming soon!');
+                                                            }}
+                                                        >
+                                                            <X className="h-4 w-4" />
+                                                        </Button>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="rounded-lg border-2 border-dashed border-gray-200 py-12 text-center">
+                                        <Users className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+                                        <h3 className="mb-2 text-lg font-medium text-gray-900">No students enrolled</h3>
+                                        <p className="text-gray-500">Add students to this class to get started.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
         </AppLayout>
     );
 }

@@ -8,6 +8,7 @@ use App\Models\ClassSchedule;
 use App\Models\Location;
 use App\Models\Subject;
 use App\Models\User;
+use App\Models\ClassStudent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -408,6 +409,86 @@ class ClassController extends Controller
                 'message' => 'Failed to generate QR code',
                 'error' => app()->environment('local') ? $e->getMessage() : 'An unexpected error occurred. Please try again.'
             ], 500);
+        }
+    }
+
+    public function getStudents(ClassModel $class)
+    {
+        try {
+            $students = $class->students()->get(['users.id', 'users.name', 'users.email']);
+            $all_students = User::where('role', 'student')->orderBy('name')->get(['id', 'name', 'email']);
+
+            return response()->json([
+                'students' => $students,
+                'all_students' => $all_students,
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Failed to get students for class ' . $class->id . ': ' . $e->getMessage());
+            return response()->json(['message' => 'Failed to load class details.'], 500);
+        }
+    }
+
+    public function addStudent(Request $request, ClassModel $class)
+    {
+        try {
+            $validated = $request->validate([
+                'user_id' => 'required|exists:users,id',
+            ]);
+
+            $user = User::find($validated['user_id']);
+            if ($user->role !== 'student') {
+                return response()->json(['message' => 'Selected user is not a student.'], 422);
+            }
+
+            // Check if student is already enrolled (using student_id column)
+            if ($class->students()->where('users.id', $validated['user_id'])->exists()) {
+                return response()->json(['message' => 'Student is already enrolled in this class.'], 422);
+            }
+
+            // Attach using the correct pivot table structure
+            $class->students()->attach($validated['user_id'], [], false);
+
+            // Get the newly added student
+            $newStudent = User::find($validated['user_id']);
+
+            return response()->json([
+                'message' => 'Student added successfully.',
+                'student' => [
+                    'id' => $newStudent->id,
+                    'name' => $newStudent->name,
+                    'email' => $newStudent->email
+                ]
+            ], 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['message' => 'Validation failed', 'errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            Log::error('Failed to add student to class ' . $class->id . ': ' . $e->getMessage());
+            return response()->json(['message' => 'An unexpected error occurred.'], 500);
+        }
+    }
+
+    // ...existing code...
+
+    public function removeStudent(ClassModel $class, User $user)
+    {
+        try {
+            // Only allow removing students
+            if ($user->role !== 'student') {
+                return response()->json(['message' => 'Selected user is not a student.'], 422);
+            }
+
+            // Check if student is enrolled
+            if (!$class->students()->where('users.id', $user->id)->exists()) {
+                return response()->json(['message' => 'Student is not enrolled in this class.'], 404);
+            }
+
+            // Detach student from class
+            $class->students()->detach($user->id);
+
+            return response()->json(['message' => 'Student removed successfully.']);
+        } catch (\Exception $e) {
+            logger()->error('Failed to remove student from class ' . $class->id . ': ' . $e->getMessage());
+            return response()->json(['message' => 'An unexpected error occurred.'], 500);
         }
     }
 }
