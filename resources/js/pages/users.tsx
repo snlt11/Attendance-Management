@@ -40,14 +40,7 @@ interface UserItem {
     updated_at?: string;
 }
 
-interface APIResponse<T> {
-    success: boolean;
-    users?: T[];
-    user?: T;
-    message?: string;
-}
-
-interface FormData {
+interface UserFormData {
     name: string;
     email: string;
     phone: string;
@@ -329,7 +322,7 @@ export default function UserManagement({
             setEditingUser(null);
             setIsDialogOpen(false);
             resetForm();
-        } catch (error) {
+        } catch {
             toast.error('Failed to save user. Please try again.');
         } finally {
             setProcessing(false);
@@ -368,7 +361,7 @@ export default function UserManagement({
 
             setDeleteDialogOpen(false);
             setUserToDelete(null);
-        } catch (error) {
+        } catch {
             toast.error('Failed to delete user. Please try again.');
         }
     };
@@ -410,21 +403,9 @@ export default function UserManagement({
                 date_of_birth: user.date_of_birth || '',
             });
             setIsDialogOpen(true);
-        } catch (error) {
-            console.error('Failed to edit user:', error);
+        } catch {
+            console.error('Failed to edit user');
             toast.error('Failed to edit user. Please try again.');
-        }
-    };
-
-    const handleCreateNew = () => {
-        try {
-            setIsEditing(false);
-            setEditingUser(null);
-            resetForm();
-            setIsDialogOpen(true);
-        } catch (error) {
-            console.error('Failed to create new user:', error);
-            toast.error('Failed to open create dialog. Please try again.');
         }
     };
 

@@ -247,7 +247,6 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [detailsClass, setDetailsClass] = useState<ClassItem | null>(null);
     const [classStudents, setClassStudents] = useState<Student[]>([]);
-    const [allStudents, setAllStudents] = useState<Student[]>([]);
     const [availableStudents, setAvailableStudents] = useState<Student[]>([]);
     const [isFetchingStudents, setIsFetchingStudents] = useState(false);
     const [studentToAdd, setStudentToAdd] = useState<string | null>(null);
@@ -326,14 +325,25 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
         try {
             const response = await axios.get(`/classes/${classItem.id}/students`);
             setClassStudents(response.data.students);
-            setAllStudents(response.data.all_students);
             const availableResponse = await axios.get(`/classes/${classItem.id}/students/search`, {
                 params: { search: '' },
             });
             setAvailableStudents(availableResponse.data.students);
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-            toast.error(error.response?.data?.message || 'Failed to load class details.');
+            const errorMessage =
+                error instanceof Error &&
+                'response' in error &&
+                typeof error.response === 'object' &&
+                error.response !== null &&
+                'data' in error.response &&
+                typeof error.response.data === 'object' &&
+                error.response.data !== null &&
+                'message' in error.response.data &&
+                typeof error.response.data.message === 'string'
+                    ? error.response.data.message
+                    : 'Failed to load class details.';
+            toast.error(errorMessage);
         } finally {
             setIsFetchingStudents(false);
         }
@@ -375,8 +385,20 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
 
             setStudentToAdd(null);
             toast.success('Student added successfully!');
-        } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Failed to add student.');
+        } catch (error: unknown) {
+            const errorMessage =
+                error instanceof Error &&
+                'response' in error &&
+                typeof error.response === 'object' &&
+                error.response !== null &&
+                'data' in error.response &&
+                typeof error.response.data === 'object' &&
+                error.response.data !== null &&
+                'message' in error.response.data &&
+                typeof error.response.data.message === 'string'
+                    ? error.response.data.message
+                    : 'Failed to add student.';
+            toast.error(errorMessage);
         } finally {
             setIsAddingStudent(false);
         }
@@ -419,8 +441,20 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
 
             toast.success('Student removed successfully!');
             closeRemoveStudentDialog();
-        } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Failed to remove student.');
+        } catch (error: unknown) {
+            const errorMessage =
+                error instanceof Error &&
+                'response' in error &&
+                typeof error.response === 'object' &&
+                error.response !== null &&
+                'data' in error.response &&
+                typeof error.response.data === 'object' &&
+                error.response.data !== null &&
+                'message' in error.response.data &&
+                typeof error.response.data.message === 'string'
+                    ? error.response.data.message
+                    : 'Failed to remove student.';
+            toast.error(errorMessage);
         } finally {
             setIsRemovingStudent(false);
         }
@@ -798,7 +832,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
         if (formData.schedules.length > 1) {
             setFormData((prev) => ({
                 ...prev,
-                schedules: prev.schedules.filter((_, i) => i !== index),
+                schedules: prev.schedules.filter((schedule, i) => i !== index),
             }));
         }
     };
@@ -815,18 +849,6 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
             delete newErrors[`schedules.${index}.${field}`];
             return newErrors;
         });
-    };
-
-    // Format schedules for display
-    const formatSchedules = (schedules: ClassSchedule[]) => {
-        if (!schedules || schedules.length === 0) return 'No schedule';
-
-        return schedules
-            .map(
-                (schedule) =>
-                    `${schedule.day_of_week.charAt(0).toUpperCase() + schedule.day_of_week.slice(1)}: ${formatTimeToAMPM(schedule.start_time)} - ${formatTimeToAMPM(schedule.end_time)}`,
-            )
-            .join(', ');
     };
 
     // Group schedules by day for better display

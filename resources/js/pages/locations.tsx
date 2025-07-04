@@ -77,7 +77,7 @@ const StableMap = ({
     const [mapError, setMapError] = useState<string | null>(null);
 
     // Type-safe API call with error handling
-    const safeApiCall = async <T extends Record<string, any>>(url: string): Promise<T> => {
+    const safeApiCall = async <T,>(url: string): Promise<T> => {
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
@@ -114,7 +114,7 @@ const StableMap = ({
                 throw new Error('Failed to load map library');
             });
 
-            delete (L.Icon.Default.prototype as any)._getIconUrl;
+            delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl;
             L.Icon.Default.mergeOptions({
                 iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
                 iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
