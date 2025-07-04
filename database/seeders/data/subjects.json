@@ -1,0 +1,37 @@
+[
+    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000001", "name": "Mathematics", "code": "MATH101", "description": "Fundamentals of mathematics" },
+    {
+        "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000002",
+        "name": "English Language",
+        "code": "ENG101",
+        "description": "Introduction to English language and literature"
+    },
+    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000003", "name": "Physics", "code": "PHY101", "description": "Basic principles of physics" },
+    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000004", "name": "Chemistry", "code": "CHEM101", "description": "Introduction to chemistry" },
+    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000005", "name": "Biology", "code": "BIO101", "description": "Fundamentals of biology" },
+    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000006", "name": "History", "code": "HIST101", "description": "World history overview" },
+    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000007", "name": "Geography", "code": "GEO101", "description": "Physical and human geography" },
+    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000008", "name": "Computer Science", "code": "CS101", "description": "Introduction to computer science" },
+    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000009", "name": "Economics", "code": "ECON101", "description": "Principles of economics" },
+    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000010", "name": "Art", "code": "ART101", "description": "Introduction to art and design" },
+    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000011", "name": "Music", "code": "MUS101", "description": "Fundamentals of music theory" },
+    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000012", "name": "Physical Education", "code": "PE101", "description": "Physical fitness and health" },
+    {
+        "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000013",
+        "name": "Business Studies",
+        "code": "BUS101",
+        "description": "Basics of business and management"
+    },
+    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000014", "name": "Psychology", "code": "PSY101", "description": "Introduction to psychology" },
+    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000015", "name": "Philosophy", "code": "PHIL101", "description": "Fundamentals of philosophy" },
+    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000016", "name": "Sociology", "code": "SOC101", "description": "Introduction to sociology" },
+    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000017", "name": "Political Science", "code": "POL101", "description": "Principles of political science" },
+    {
+        "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000018",
+        "name": "Environmental Science",
+        "code": "ENV101",
+        "description": "Basics of environmental science"
+    },
+    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000019", "name": "French Language", "code": "FR101", "description": "Introduction to French language" },
+    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000020", "name": "Spanish Language", "code": "SPN101", "description": "Introduction to Spanish language" }
+]

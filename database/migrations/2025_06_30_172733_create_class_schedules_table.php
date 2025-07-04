@@ -17,7 +17,6 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('class_id')->references('id')->on('classes')->onDelete('cascade');
-            $table->unique(['class_id', 'day_of_week']); // One schedule per day per class
         });
     }
 

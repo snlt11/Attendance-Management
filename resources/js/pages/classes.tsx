@@ -255,6 +255,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
     const [studentToRemove, setStudentToRemove] = useState<Student | null>(null);
     const [isRemovingStudent, setIsRemovingStudent] = useState(false);
     const [isRemoveStudentDialogOpen, setIsRemoveStudentDialogOpen] = useState(false);
+    const [modalKey, setModalKey] = useState(0);
 
     // Countdown timer effect with auto-regeneration
     useEffect(() => {
@@ -316,6 +317,12 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
         setDetailsClass(classItem);
         setIsDetailsModalOpen(true);
         setIsFetchingStudents(true);
+        setModalKey((prev) => prev + 1); // Force re-render
+
+        // Clear previous data
+        setClassStudents([]);
+        setAvailableStudents([]);
+
         try {
             const response = await axios.get(`/classes/${classItem.id}/students`);
             setClassStudents(response.data.students);
@@ -822,6 +829,56 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
             .join(', ');
     };
 
+    // Group schedules by day for better display
+    const groupSchedulesByDay = (schedules: ClassSchedule[]) => {
+        if (!schedules || schedules.length === 0) return {};
+
+        const grouped: { [key: string]: ClassSchedule[] } = {};
+        schedules.forEach((schedule) => {
+            const day = schedule.day_of_week;
+            if (!grouped[day]) {
+                grouped[day] = [];
+            }
+            grouped[day].push(schedule);
+        });
+
+        // Sort schedules within each day by start time
+        Object.keys(grouped).forEach((day) => {
+            grouped[day].sort((a, b) => a.start_time.localeCompare(b.start_time));
+        });
+
+        return grouped;
+    };
+
+    // Component to display schedules in a clean format
+    const ScheduleDisplay = ({ schedules }: { schedules: ClassSchedule[] }) => {
+        const groupedSchedules = groupSchedulesByDay(schedules);
+        const dayOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+        if (Object.keys(groupedSchedules).length === 0) {
+            return <span className="text-gray-500">No schedule</span>;
+        }
+
+        return (
+            <div className="space-y-1">
+                {dayOrder
+                    .filter((day) => groupedSchedules[day])
+                    .map((day) => (
+                        <div key={day} className="flex items-start gap-2">
+                            <span className="min-w-[45px] text-xs font-medium text-gray-600 capitalize dark:text-gray-400">{day.slice(0, 3)}:</span>
+                            <div className="flex-1 space-y-0.5">
+                                {groupedSchedules[day].map((schedule, index) => (
+                                    <div key={index} className="text-xs text-gray-900 dark:text-gray-100">
+                                        {formatTimeToAMPM(schedule.start_time)} - {formatTimeToAMPM(schedule.end_time)}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+            </div>
+        );
+    };
+
     const ClassCard = ({ classItem }: { classItem: ClassItem }) => {
         return (
             <div className="group relative overflow-visible rounded-xl border border-gray-200/50 bg-white/80 p-0 shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-blue-200 hover:shadow-lg hover:shadow-blue-100/50 dark:border-gray-800/50 dark:bg-gray-900/80 dark:hover:border-blue-800 dark:hover:shadow-blue-900/20">
@@ -950,14 +1007,14 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
 
                     {/* Details grid */}
                     <div className="space-y-3">
-                        <div className="flex items-center gap-3 text-sm">
+                        <div className="flex items-start gap-3 text-sm">
                             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-green-100 dark:bg-green-900/30">
                                 <Clock className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
                             </div>
                             <div className="flex-1">
                                 <div className="text-xs font-medium text-gray-500 dark:text-gray-400">Schedule</div>
-                                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                                    {formatSchedules(classItem.class_schedules)}
+                                <div className="mt-1">
+                                    <ScheduleDisplay schedules={classItem.class_schedules} />
                                 </div>
                             </div>
                         </div>
@@ -1490,17 +1547,20 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
 
             {/* Modern View Details Modal */}
             <Dialog
+                key={modalKey}
                 open={isDetailsModalOpen}
                 onOpenChange={(open) => {
                     setIsDetailsModalOpen(open);
                     if (!open) {
                         setStudentToAdd(null);
                         setAvailableStudents([]);
+                        setClassStudents([]);
+                        setDetailsClass(null);
                     }
                 }}
             >
-                <DialogContent className="max-h-[85vh] overflow-hidden sm:max-w-4xl">
-                    <DialogHeader className="border-b pb-4">
+                <DialogContent className="flex h-[85vh] max-h-[85vh] w-full flex-col sm:max-w-4xl">
+                    <DialogHeader className="flex-shrink-0 border-b pb-4">
                         <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
                             <BookOpen className="h-5 w-5 text-blue-600" />
                             {detailsClass?.name}
@@ -1509,120 +1569,133 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                     </DialogHeader>
 
                     {isFetchingStudents ? (
-                        <div className="flex items-center justify-center py-12">
+                        <div className="flex flex-1 items-center justify-center">
                             <div className="text-center">
                                 <Loader2 className="mx-auto mb-2 h-8 w-8 animate-spin text-blue-600" />
                                 <p className="text-sm text-gray-500">Loading class details...</p>
                             </div>
                         </div>
                     ) : (
-                        <div className="space-y-4 overflow-y-auto py-4">
-                            {/* Class Info */}
-                            <div className="rounded-lg bg-gray-50 p-3">
-                                <div className="grid grid-cols-4 gap-4 text-sm">
-                                    <div>
-                                        <span className="text-xs font-medium text-gray-500">Subject</span>
-                                        <p className="text-sm text-gray-900">{detailsClass?.subject.name}</p>
+                        <div className="flex-1 overflow-hidden">
+                            <div className="h-full space-y-4 overflow-y-auto p-4">
+                                {/* Class Info */}
+                                <div className="flex-shrink-0 rounded-lg bg-gray-50 p-4">
+                                    <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
+                                        <div>
+                                            <span className="text-xs font-medium text-gray-500">Subject</span>
+                                            <p className="text-sm font-medium text-gray-900">{detailsClass?.subject.name}</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-xs font-medium text-gray-500">Teacher</span>
+                                            <p className="text-sm font-medium text-gray-900">{detailsClass?.teacher.name}</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-xs font-medium text-gray-500">Location</span>
+                                            <p className="text-sm font-medium text-gray-900">{detailsClass?.location.name}</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-xs font-medium text-gray-500">Max Students</span>
+                                            <p className="text-sm font-medium text-gray-900">{detailsClass?.max_students}</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <span className="text-xs font-medium text-gray-500">Teacher</span>
-                                        <p className="text-sm text-gray-900">{detailsClass?.teacher.name}</p>
+                                    {/* Schedule Section */}
+                                    <div className="mt-4 border-t border-gray-200 pt-3">
+                                        <span className="text-xs font-medium text-gray-500">Schedule</span>
+                                        <div className="mt-2">
+                                            <ScheduleDisplay schedules={detailsClass?.class_schedules || []} />
+                                        </div>
                                     </div>
-                                    <div>
-                                        <span className="text-xs font-medium text-gray-500">Location</span>
-                                        <p className="text-sm text-gray-900">{detailsClass?.location.name}</p>
-                                    </div>
-                                    <div>
-                                        <span className="text-xs font-medium text-gray-500">Max Students</span>
-                                        <p className="text-sm text-gray-900">{detailsClass?.max_students}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Add Student Section */}
-                            <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
-                                <div className="mb-2 flex items-center gap-2">
-                                    <UserPlus className="h-4 w-4 text-blue-600" />
-                                    <h3 className="text-sm font-medium text-blue-900">Add New Student</h3>
-                                </div>
-                                <div className="flex gap-2">
-                                    <Select onValueChange={setStudentToAdd} value={studentToAdd || ''} key={`select-${availableStudents.length}`}>
-                                        <SelectTrigger className="h-8 flex-1 bg-white text-sm">
-                                            <SelectValue placeholder="Select a student to add" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {availableStudents.length === 0 ? (
-                                                <div className="p-2 text-center text-xs text-gray-500">
-                                                    {isFetchingStudents ? 'Loading...' : 'All students enrolled'}
-                                                </div>
-                                            ) : (
-                                                availableStudents.map((student) => (
-                                                    <SelectItem key={student.id} value={student.id}>
-                                                        <div className="flex flex-col">
-                                                            <span className="text-xs font-medium">{student.name}</span>
-                                                            <span className="text-xs text-gray-500">{student.email}</span>
-                                                        </div>
-                                                    </SelectItem>
-                                                ))
-                                            )}
-                                        </SelectContent>
-                                    </Select>
-                                    <Button
-                                        onClick={handleAddStudent}
-                                        disabled={!studentToAdd || isAddingStudent}
-                                        className="h-8 bg-blue-600 px-3 text-sm hover:bg-blue-700"
-                                    >
-                                        {isAddingStudent ? (
-                                            <Loader2 className="h-3 w-3 animate-spin" />
-                                        ) : (
-                                            <>
-                                                <UserPlus className="mr-1 h-3 w-3" />
-                                                Add
-                                            </>
-                                        )}
-                                    </Button>
-                                </div>
-                            </div>
-
-                            {/* Students List */}
-                            <div>
-                                <div className="mb-3 flex items-center justify-between">
-                                    <h3 className="flex items-center gap-2 text-sm font-medium text-gray-900">
-                                        <Users className="h-4 w-4 text-gray-600" />
-                                        Enrolled Students ({classStudents.length})
-                                    </h3>
                                 </div>
 
-                                <div className="min-h-[200px] rounded-lg border-2 border-gray-200 p-3">
-                                    {classStudents.length > 0 ? (
-                                        <div className="flex flex-wrap gap-2">
-                                            {classStudents.map((student) => (
-                                                <div
-                                                    key={student.id}
-                                                    className="flex min-w-[100px] items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 py-2 pr-2 pl-3"
-                                                >
-                                                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-white">
-                                                        <span className="text-sm font-semibold">{student.name.charAt(0).toUpperCase()}</span>
+                                {/* Add Student Section */}
+                                <div className="flex-shrink-0 rounded-lg border border-blue-200 bg-blue-50 p-4">
+                                    <div className="mb-3 flex items-center gap-2">
+                                        <UserPlus className="h-4 w-4 text-blue-600" />
+                                        <h3 className="text-sm font-medium text-blue-900">Add New Student</h3>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <Select onValueChange={setStudentToAdd} value={studentToAdd || ''} key={`select-${availableStudents.length}`}>
+                                            <SelectTrigger className="h-9 flex-1 bg-white text-sm">
+                                                <SelectValue placeholder="Select a student to add" />
+                                            </SelectTrigger>
+                                            <SelectContent className="max-h-[300px] overflow-y-auto">
+                                                {availableStudents.length === 0 ? (
+                                                    <div className="p-3 text-center text-sm text-gray-500">
+                                                        {isFetchingStudents ? 'Loading...' : 'All students are enrolled'}
                                                     </div>
-                                                    <span className="text-base font-medium text-gray-900">{student.name}</span>
-                                                    {auth.user.role === 'teacher' && (
-                                                        <button
-                                                            onClick={() => openRemoveStudentDialog(student)}
-                                                            className="p-1 text-gray-400 hover:text-red-600"
-                                                        >
-                                                            <X className="h-4 w-4" />
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <div className="flex h-full flex-col items-center justify-center py-8 text-center">
-                                            <Users className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-                                            <h3 className="mb-2 text-lg font-medium text-gray-900">No students enrolled</h3>
-                                            <p className="text-gray-500">Add students to this class to get started.</p>
-                                        </div>
-                                    )}
+                                                ) : (
+                                                    availableStudents.map((student) => (
+                                                        <SelectItem key={student.id} value={student.id}>
+                                                            <div className="flex flex-col">
+                                                                <span className="text-sm font-medium">{student.name}</span>
+                                                                <span className="text-xs text-gray-500">{student.email}</span>
+                                                            </div>
+                                                        </SelectItem>
+                                                    ))
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                        <Button
+                                            onClick={handleAddStudent}
+                                            disabled={!studentToAdd || isAddingStudent}
+                                            className="h-9 bg-blue-600 px-4 text-sm hover:bg-blue-700"
+                                        >
+                                            {isAddingStudent ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <>
+                                                    <UserPlus className="mr-2 h-4 w-4" />
+                                                    Add
+                                                </>
+                                            )}
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                {/* Students List */}
+                                <div className="flex min-h-[300px] flex-1 flex-col">
+                                    <div className="mb-3 flex flex-shrink-0 items-center justify-between">
+                                        <h3 className="flex items-center gap-2 text-sm font-medium text-gray-900">
+                                            <Users className="h-4 w-4 text-gray-600" />
+                                            Enrolled Students ({classStudents.length})
+                                        </h3>
+                                    </div>
+
+                                    <div className="h-[350px] overflow-y-auto rounded-lg border-2 border-gray-200 p-4">
+                                        {classStudents.length > 0 ? (
+                                            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                                                {classStudents.map((student) => (
+                                                    <div
+                                                        key={student.id}
+                                                        className="group relative flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3 transition-all hover:bg-blue-100"
+                                                    >
+                                                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-500 text-white">
+                                                            <span className="text-sm font-medium">{student.name.charAt(0).toUpperCase()}</span>
+                                                        </div>
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="truncate text-sm font-medium text-gray-900">{student.name}</p>
+                                                            <p className="truncate text-xs text-gray-600">{student.email}</p>
+                                                        </div>
+                                                        {auth.user.role === 'teacher' && (
+                                                            <button
+                                                                onClick={() => openRemoveStudentDialog(student)}
+                                                                className="flex-shrink-0 rounded-full p-1 text-gray-400 opacity-0 transition-all group-hover:opacity-100 hover:bg-red-100 hover:text-red-600"
+                                                                title="Remove student"
+                                                            >
+                                                                <X className="h-3 w-3" />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="flex h-full min-h-[200px] flex-col items-center justify-center text-center">
+                                                <Users className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+                                                <h3 className="mb-2 text-lg font-medium text-gray-900">No students enrolled</h3>
+                                                <p className="text-gray-500">Add students to this class to get started.</p>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>

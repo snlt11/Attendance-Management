@@ -34,7 +34,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 interface Location {
-    id: number;
+    id: string;
     name: string;
     latitude: number;
     longitude: number;
@@ -649,7 +649,7 @@ export default function Locations({ locations: initialLocations }: LocationsPage
     // Delete confirmation dialog state
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [locationToDelete, setLocationToDelete] = useState<Location | null>(null);
-    const [deletingId, setDeletingId] = useState<number | null>(null);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
     // Filter locations based on search term
     const filteredLocations = useMemo(() => {

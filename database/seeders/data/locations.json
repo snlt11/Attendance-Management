@@ -1,0 +1,201 @@
+[
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000001",
+        "name": "Yangon University",
+        "latitude": 16.7987,
+        "longitude": 96.1497,
+        "address": "Kamayut, Yangon"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000002",
+        "name": "Mandalay University",
+        "latitude": 21.9811,
+        "longitude": 96.0869,
+        "address": "Chanayethazan, Mandalay"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000003",
+        "name": "Dagon University",
+        "latitude": 16.9021,
+        "longitude": 96.1586,
+        "address": "North Dagon, Yangon"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000004",
+        "name": "Yadanabon University",
+        "latitude": 22.0511,
+        "longitude": 96.0906,
+        "address": "Amarapura, Mandalay"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000005",
+        "name": "Taunggyi University",
+        "latitude": 20.7892,
+        "longitude": 97.0378,
+        "address": "Taunggyi, Shan State"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000006",
+        "name": "Pathein University",
+        "latitude": 16.7792,
+        "longitude": 94.7321,
+        "address": "Pathein, Ayeyarwady"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000007",
+        "name": "Monywa University",
+        "latitude": 22.1044,
+        "longitude": 95.1358,
+        "address": "Monywa, Sagaing"
+    },
+    { "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000008", "name": "Pyay University", "latitude": 18.8241, "longitude": 95.2217, "address": "Pyay, Bago" },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000009",
+        "name": "Meiktila University",
+        "latitude": 20.8772,
+        "longitude": 95.8586,
+        "address": "Meiktila, Mandalay"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000010",
+        "name": "Magway University",
+        "latitude": 20.1536,
+        "longitude": 94.9325,
+        "address": "Magway, Magway"
+    },
+    { "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000011", "name": "Bago University", "latitude": 17.3369, "longitude": 96.4814, "address": "Bago, Bago" },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000012",
+        "name": "Hpa-An University",
+        "latitude": 16.8886,
+        "longitude": 97.6342,
+        "address": "Hpa-An, Kayin"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000013",
+        "name": "Mawlamyine University",
+        "latitude": 16.4917,
+        "longitude": 97.6259,
+        "address": "Mawlamyine, Mon"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000014",
+        "name": "Sittwe University",
+        "latitude": 20.1462,
+        "longitude": 92.896,
+        "address": "Sittwe, Rakhine"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000015",
+        "name": "Myitkyina University",
+        "latitude": 25.3864,
+        "longitude": 97.3945,
+        "address": "Myitkyina, Kachin"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000016",
+        "name": "Loikaw University",
+        "latitude": 19.6781,
+        "longitude": 97.209,
+        "address": "Loikaw, Kayah"
+    },
+    { "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000017", "name": "Hakha University", "latitude": 22.65, "longitude": 93.6167, "address": "Hakha, Chin" },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000018",
+        "name": "Naypyitaw University",
+        "latitude": 19.7633,
+        "longitude": 96.0785,
+        "address": "Zabuthiri, Naypyitaw"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000019",
+        "name": "Pyin Oo Lwin University",
+        "latitude": 22.035,
+        "longitude": 96.456,
+        "address": "Pyin Oo Lwin, Mandalay"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000020",
+        "name": "Shwebo University",
+        "latitude": 22.5786,
+        "longitude": 95.6986,
+        "address": "Shwebo, Sagaing"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000021",
+        "name": "Myeik University",
+        "latitude": 12.4394,
+        "longitude": 98.6003,
+        "address": "Myeik, Tanintharyi"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000022",
+        "name": "Dawei University",
+        "latitude": 14.0736,
+        "longitude": 98.1942,
+        "address": "Dawei, Tanintharyi"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000023",
+        "name": "Lashio University",
+        "latitude": 22.9353,
+        "longitude": 97.7522,
+        "address": "Lashio, Shan State"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000024",
+        "name": "Kyaingtong University",
+        "latitude": 21.3,
+        "longitude": 99.6,
+        "address": "Kyaingtong, Shan State"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000025",
+        "name": "Hinthada University",
+        "latitude": 17.6489,
+        "longitude": 95.4572,
+        "address": "Hinthada, Ayeyarwady"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000026",
+        "name": "Pakokku University",
+        "latitude": 21.3325,
+        "longitude": 95.0861,
+        "address": "Pakokku, Magway"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000027",
+        "name": "Mawlamyinegyun University",
+        "latitude": 15.9722,
+        "longitude": 95.2681,
+        "address": "Mawlamyinegyun, Ayeyarwady"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000028",
+        "name": "Bogale University",
+        "latitude": 16.2872,
+        "longitude": 95.4,
+        "address": "Bogale, Ayeyarwady"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000029",
+        "name": "Kyaukse University",
+        "latitude": 21.61,
+        "longitude": 96.1322,
+        "address": "Kyaukse, Mandalay"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000030",
+        "name": "Thandwe University",
+        "latitude": 18.4667,
+        "longitude": 94.3667,
+        "address": "Thandwe, Rakhine"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000031",
+        "name": "Taungoo University",
+        "latitude": 18.9461,
+        "longitude": 96.4347,
+        "address": "Taungoo, Bago"
+    }
+]
