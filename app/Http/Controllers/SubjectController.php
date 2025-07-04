@@ -19,21 +19,6 @@ class SubjectController extends Controller
         ]);
     }
 
-    /**
-     * Get subjects for API/AJAX requests
-     */
-    // public function list()
-    // {
-    //     $subjects = Subject::orderBy('name')->get();
-    //     return response()->json([
-    //         'success' => true,
-    //         'subjects' => $subjects
-    //     ]);
-    // }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -89,18 +74,29 @@ class SubjectController extends Controller
      */
     public function destroy(Subject $subject)
     {
-        if ($subject->classes()->exists()) {
+        // Check if subject has related classes
+        $classCount = $subject->classes()->count();
+        if ($classCount > 0) {
+            $classText = $classCount === 1 ? 'class' : 'classes';
             return response()->json([
                 'success' => false,
-                'message' => "Cannot delete subject because it has associated classes."
+                'message' => "Cannot delete '{$subject->name}' because it has {$classCount} associated {$classText}. Please remove the classes using this subject first or assign them to a different subject.",
+                'suggestion' => 'reassign_or_remove_classes'
             ], 422);
         }
 
-        $subject->delete();
+        try {
+            $subject->delete();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Subject deleted successfully!'
-        ]);
+            return response()->json([
+                'success' => true,
+                'message' => 'Subject deleted successfully!'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete subject. Please try again or contact support.'
+            ], 500);
+        }
     }
 }

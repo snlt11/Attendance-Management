@@ -101,11 +101,13 @@ const PaginationComponent = ({
     const pageNumbers = getPageNumbers();
 
     return (
-        <div className="mt-6 flex items-center justify-between">
-            <div className="text-sm text-gray-700">
-                Showing page {currentPage} of {totalPages}
+        <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-6 py-4 dark:border-gray-800 dark:bg-gray-900">
+            <div className="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                <span>
+                    Showing page <span className="font-semibold">{currentPage}</span> of <span className="font-semibold">{totalPages}</span>
+                </span>
             </div>
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center space-x-2">
                 <Button variant="outline" size="sm" onClick={() => onPageChange(currentPage - 1)} disabled={currentPage === 1} className="px-3 py-2">
                     <ChevronLeft className="mr-1 h-4 w-4" />
                     Previous
@@ -128,7 +130,7 @@ const PaginationComponent = ({
                             size="sm"
                             onClick={() => onPageChange(pageNum)}
                             className={`min-w-[2.5rem] px-3 py-2 ${
-                                pageNum === currentPage ? 'bg-primary text-primary-foreground' : 'hover:bg-gray-50'
+                                pageNum === currentPage ? 'bg-blue-600 text-white hover:bg-blue-700' : 'hover:bg-gray-50 dark:hover:bg-gray-800'
                             }`}
                         >
                             {pageNum}
@@ -159,7 +161,7 @@ export default function Subjects({ subjects: initialSubjects }: { subjects: Subj
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [processing, setProcessing] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 9;
+    const itemsPerPage = 12;
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [subjectToDelete, setSubjectToDelete] = useState<Subject | null>(null);
 
@@ -283,7 +285,25 @@ export default function Subjects({ subjects: initialSubjects }: { subjects: Subj
             });
 
             const data = (await response.json()) as APIResponse<null>;
-            if (!data.success) throw new Error(data.message || 'API error');
+
+            if (!response.ok) {
+                // Handle different error statuses
+                if (response.status === 422) {
+                    // Validation error - subject has related data
+                    toast.error(data.message || 'Cannot delete subject due to related data.');
+                } else {
+                    // Other server errors
+                    toast.error(data.message || 'Failed to delete subject. Please try again.');
+                }
+                closeDeleteDialog();
+                return;
+            }
+
+            if (!data.success) {
+                toast.error(data.message || 'Failed to delete subject.');
+                closeDeleteDialog();
+                return;
+            }
 
             setSubjects((prev) => prev.filter((subject) => subject.id !== subjectToDelete.id));
             toast.success('Subject deleted successfully.');
@@ -299,7 +319,8 @@ export default function Subjects({ subjects: initialSubjects }: { subjects: Subj
             setSubjectToDelete(null);
         } catch (error) {
             console.error('Failed to delete subject:', error);
-            toast.error('Failed to delete subject. Please try again.');
+            toast.error('Network error. Please check your connection and try again.');
+            closeDeleteDialog();
         }
     };
 
@@ -361,27 +382,22 @@ export default function Subjects({ subjects: initialSubjects }: { subjects: Subj
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Subjects" />
-            <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                {/* Search and Create */}
-                <div className="flex items-center justify-between">
-                    <div className="relative max-w-sm flex-1">
-                        <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
-                        <Input
-                            type="search"
-                            placeholder="Search subjects..."
-                            onChange={(e) => handleSearch(e.target.value)}
-                            className="pl-10 dark:border-gray-700 dark:placeholder-gray-400"
-                        />
+            <div className="flex h-full flex-1 flex-col gap-6 p-6">
+                {/* Header Section */}
+                <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Subjects</h1>
+                        <p className="text-muted-foreground">Manage your academic subjects and course offerings</p>
                     </div>
 
                     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button variant="default" onClick={handleCreateNew}>
+                            <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleCreateNew}>
                                 <Plus className="mr-2 h-4 w-4" />
                                 Create New Subject
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="max-w-2xl dark:border-gray-800 dark:bg-gray-900">
+                        <DialogContent className="max-w-2xl">
                             <DialogHeader>
                                 <DialogTitle>{isEditing ? 'Edit Subject' : 'Create New Subject'}</DialogTitle>
                                 <DialogDescription>
@@ -392,53 +408,39 @@ export default function Subjects({ subjects: initialSubjects }: { subjects: Subj
                             </DialogHeader>
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="name" className="dark:text-gray-200">
-                                        Subject Name
-                                    </Label>
+                                    <Label htmlFor="name">Subject Name *</Label>
                                     <Input
                                         id="name"
                                         value={formData.name}
                                         onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
                                         placeholder="e.g., Mathematics"
-                                        className="dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
                                     />
-                                    {errors.name && <p className="text-sm text-red-600 dark:text-red-400">{errors.name}</p>}
+                                    {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="code" className="dark:text-gray-200">
-                                        Subject Code
-                                    </Label>
+                                    <Label htmlFor="code">Subject Code</Label>
                                     <Input
                                         id="code"
                                         value={formData.code}
                                         onChange={(e) => setFormData((prev) => ({ ...prev, code: e.target.value }))}
                                         placeholder="e.g., MATH101"
-                                        className="dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="description" className="dark:text-gray-200">
-                                        Description
-                                    </Label>
+                                    <Label htmlFor="description">Description</Label>
                                     <Textarea
                                         id="description"
                                         value={formData.description}
                                         onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
                                         placeholder="Enter subject description..."
                                         rows={3}
-                                        className="dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
                                     />
                                 </div>
 
-                                <div className="flex justify-end gap-2 border-t pt-4 dark:border-gray-700">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => setIsDialogOpen(false)}
-                                        className="dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-                                    >
+                                <div className="flex justify-end gap-2 border-t pt-4">
+                                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                                         Cancel
                                     </Button>
                                     <Button type="submit" disabled={processing}>
@@ -459,71 +461,159 @@ export default function Subjects({ subjects: initialSubjects }: { subjects: Subj
                     </Dialog>
                 </div>
 
+                {/* Search Bar */}
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="relative max-w-sm flex-1">
+                        <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input type="search" placeholder="Search subjects..." onChange={(e) => handleSearch(e.target.value)} className="pl-10" />
+                    </div>
+                </div>
+
+                {/* Statistics Cards */}
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100 p-6 shadow-sm dark:border-blue-800 dark:from-blue-950 dark:to-blue-900">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-2">
+                                <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Total Subjects</p>
+                                <p className="text-3xl font-bold text-blue-900 dark:text-blue-100">{subjects.length}</p>
+                            </div>
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600">
+                                <Book className="h-6 w-6 text-white" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="rounded-xl border border-green-200 bg-gradient-to-br from-green-50 to-green-100 p-6 shadow-sm dark:border-green-800 dark:from-green-950 dark:to-green-900">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-2">
+                                <p className="text-sm font-medium text-green-600 dark:text-green-400">Active Subjects</p>
+                                <p className="text-3xl font-bold text-green-900 dark:text-green-100">{filteredSubjects.length}</p>
+                            </div>
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-600">
+                                <Book className="h-6 w-6 text-white" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100 p-6 shadow-sm dark:border-purple-800 dark:from-purple-950 dark:to-purple-900">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-2">
+                                <p className="text-sm font-medium text-purple-600 dark:text-purple-400">Available</p>
+                                <p className="text-3xl font-bold text-purple-900 dark:text-purple-100">{paginatedSubjects.length}</p>
+                            </div>
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-600">
+                                <Book className="h-6 w-6 text-white" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Subjects Grid */}
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {paginatedSubjects.length === 0 ? (
-                        <div className="col-span-full py-12 text-center">
-                            <Book className="mx-auto mb-4 h-12 w-12 text-gray-400 dark:text-gray-600" />
-                            <p className="text-gray-500 dark:text-gray-400">No subjects found</p>
+                        <div className="col-span-full flex flex-col items-center justify-center py-16">
+                            <div className="rounded-full bg-gray-100 p-6 dark:bg-gray-800">
+                                <Book className="h-12 w-12 text-gray-400" />
+                            </div>
+                            <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">No subjects found</h3>
+                            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">No subjects match your current search criteria.</p>
                         </div>
                     ) : (
                         paginatedSubjects.map((subject) => (
                             <div
                                 key={subject.id}
-                                className="rounded-lg border bg-card p-6 shadow-sm transition-shadow hover:shadow-md dark:border-gray-800 dark:bg-gray-800/50"
+                                className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-lg hover:shadow-gray-200/50 dark:border-gray-800 dark:bg-gray-900 dark:hover:shadow-gray-900/50"
                             >
-                                <div className="flex items-start justify-between">
-                                    <div className="space-y-1">
-                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{subject.name}</h3>
-                                        {subject.code && <p className="text-sm text-muted-foreground dark:text-gray-400">Code: {subject.code}</p>}
-                                    </div>
-                                    <div className="flex space-x-2">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => handleEdit(subject)}
-                                            className="dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
-                                        >
-                                            <Edit className="h-4 w-4" />
-                                        </Button>
-                                        <AlertDialog open={deleteDialogOpen && subjectToDelete?.id === subject.id}>
-                                            <AlertDialogTrigger asChild>
-                                                <Button
-                                                    variant="destructive"
-                                                    size="sm"
-                                                    onClick={() => openDeleteDialog(subject)}
-                                                    className="dark:bg-red-900 dark:hover:bg-red-800"
-                                                >
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>Delete Subject</AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                        Are you sure you want to delete <b>{subjectToDelete?.name}</b>? This action cannot be undone.
-                                                    </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel onClick={closeDeleteDialog}>Cancel</AlertDialogCancel>
-                                                    <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
-                                                        Delete
-                                                    </AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
+                                {/* Subject Header */}
+                                <div className="mb-4 flex items-start justify-between">
+                                    <div className="flex items-center space-x-3">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-white">
+                                            <Book className="h-6 w-6" />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <h3 className="truncate text-lg font-semibold text-gray-900 dark:text-gray-100">{subject.name}</h3>
+                                            {subject.code && <p className="text-sm font-medium text-blue-600 dark:text-blue-400">{subject.code}</p>}
+                                        </div>
                                     </div>
                                 </div>
+
+                                {/* Subject Description */}
                                 {subject.description && (
-                                    <p className="mt-2 line-clamp-2 text-sm text-muted-foreground dark:text-gray-400">{subject.description}</p>
+                                    <div className="mb-4">
+                                        <p className="line-clamp-3 text-sm text-gray-600 dark:text-gray-300">{subject.description}</p>
+                                    </div>
                                 )}
-                                <p className="mt-2 text-xs text-muted-foreground dark:text-gray-500">Created: {formatDate(subject.created_at)}</p>
+
+                                {/* Subject Details */}
+                                <div className="space-y-2">
+                                    {subject.created_at && (
+                                        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                            <div className="flex h-6 w-6 items-center justify-center rounded bg-gray-100 dark:bg-gray-800">📅</div>
+                                            <span className="truncate">Created {formatDate(subject.created_at)}</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="mt-6 flex items-center justify-end gap-2 border-t border-gray-100 pt-4 dark:border-gray-800">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleEdit(subject)}
+                                        className="flex items-center gap-1 hover:bg-blue-50 hover:text-blue-600"
+                                    >
+                                        <Edit className="h-4 w-4" />
+                                        Edit
+                                    </Button>
+
+                                    <AlertDialog open={deleteDialogOpen && subjectToDelete?.id === subject.id}>
+                                        <AlertDialogTrigger asChild>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => openDeleteDialog(subject)}
+                                                className="flex items-center gap-1 hover:bg-red-50 hover:text-red-600"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                                Delete
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Delete Subject</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Are you sure you want to delete <b>{subjectToDelete?.name}</b>?
+                                                    <br />
+                                                    <br />
+                                                    <span className="text-amber-600 dark:text-amber-400">
+                                                        ⚠️ Note: If this subject is being used by any classes, the deletion will fail and you'll need
+                                                        to remove or reassign those classes first.
+                                                    </span>
+                                                    <br />
+                                                    <br />
+                                                    This action cannot be undone.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel onClick={closeDeleteDialog}>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+                                                    Delete
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </div>
                             </div>
                         ))
                     )}
                 </div>
 
-                {totalPages > 1 && <PaginationComponent currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />}
+                {/* Pagination */}
+                {totalPages > 1 && (
+                    <div className="mt-8">
+                        <PaginationComponent currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+                    </div>
+                )}
             </div>
             <Toaster position="top-right" richColors closeButton />
         </AppLayout>
