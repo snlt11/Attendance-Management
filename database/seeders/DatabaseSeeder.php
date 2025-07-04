@@ -53,6 +53,12 @@ class DatabaseSeeder extends Seeder
         if (file_exists($subjectsDataPath)) {
             $subjects = json_decode(file_get_contents($subjectsDataPath), true);
             if (is_array($subjects) && count($subjects) > 0) {
+                $now = now();
+                $subjects = array_map(function ($subject) use ($now) {
+                    $subject['created_at'] = $now;
+                    $subject['updated_at'] = $now;
+                    return $subject;
+                }, $subjects);
                 Subject::insert($subjects);
             }
         }

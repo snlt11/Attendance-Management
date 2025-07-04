@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -106,11 +105,13 @@ const PaginationComponent = ({
     const pageNumbers = getPageNumbers();
 
     return (
-        <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-700">
-                Showing page {currentPage} of {totalPages}
+        <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-6 py-4 dark:border-gray-800 dark:bg-gray-900">
+            <div className="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                <span>
+                    Showing page <span className="font-semibold">{currentPage}</span> of <span className="font-semibold">{totalPages}</span>
+                </span>
             </div>
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center space-x-2">
                 <Button variant="outline" size="sm" onClick={() => onPageChange(currentPage - 1)} disabled={currentPage === 1} className="px-3 py-2">
                     <ChevronLeft className="mr-1 h-4 w-4" />
                     Previous
@@ -133,7 +134,7 @@ const PaginationComponent = ({
                             size="sm"
                             onClick={() => onPageChange(pageNum)}
                             className={`min-w-[2.5rem] px-3 py-2 ${
-                                pageNum === currentPage ? 'bg-primary text-primary-foreground' : 'hover:bg-gray-50'
+                                pageNum === currentPage ? 'bg-blue-600 text-white hover:bg-blue-700' : 'hover:bg-gray-50 dark:hover:bg-gray-800'
                             }`}
                         >
                             {pageNum}
@@ -454,51 +455,17 @@ export default function UserManagement({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Users" />
-            <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+            <div className="flex h-full flex-1 flex-col gap-6 p-6">
                 {/* Header with Search and Filters */}
                 <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-                    <div className="flex flex-1 flex-col gap-4 sm:flex-row">
-                        <div className="relative max-w-sm flex-1">
-                            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                            <Input type="search" placeholder="Search users..." onChange={(e) => handleSearch(e.target.value)} className="pl-10" />
-                        </div>
-                        <div className="flex gap-2">
-                            <Select value={roleFilter} onValueChange={handleRoleFilter}>
-                                <SelectTrigger className="w-32">
-                                    <SelectValue placeholder="Role" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Roles</SelectItem>
-                                    {roles.map((role) => (
-                                        <SelectItem key={role.value} value={role.value}>
-                                            {role.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-
-                            <Select value={statusFilter} onValueChange={handleStatusFilter}>
-                                <SelectTrigger className="w-32">
-                                    <SelectValue placeholder="Status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Status</SelectItem>
-                                    <SelectItem value="active">Active</SelectItem>
-                                    <SelectItem value="inactive">Inactive</SelectItem>
-                                    <SelectItem value="suspended">Suspended</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Users</h1>
+                        <p className="text-muted-foreground">Manage your platform users and their roles</p>
                     </div>
-
-                    {/* <Button variant="default" onClick={handleCreateNew}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add New User
-                    </Button> */}
 
                     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button variant="default">
+                            <Button className="bg-blue-600 hover:bg-blue-700">
                                 <Plus className="mr-2 h-4 w-4" />
                                 Add New User
                             </Button>
@@ -624,151 +591,228 @@ export default function UserManagement({
                     </Dialog>
                 </div>
 
+                {/* Search and Filters Bar */}
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-1 flex-col gap-4 sm:flex-row sm:items-center">
+                        <div className="relative max-w-sm flex-1">
+                            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input type="search" placeholder="Search users..." onChange={(e) => handleSearch(e.target.value)} className="pl-10" />
+                        </div>
+                        <div className="flex gap-2">
+                            <Select value={roleFilter} onValueChange={handleRoleFilter}>
+                                <SelectTrigger className="w-40">
+                                    <SelectValue placeholder="All Roles" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Roles</SelectItem>
+                                    {roles.map((role) => (
+                                        <SelectItem key={role.value} value={role.value}>
+                                            {role.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+
+                            <Select value={statusFilter} onValueChange={handleStatusFilter}>
+                                <SelectTrigger className="w-40">
+                                    <SelectValue placeholder="All Status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Status</SelectItem>
+                                    <SelectItem value="active">Active</SelectItem>
+                                    <SelectItem value="inactive">Inactive</SelectItem>
+                                    <SelectItem value="suspended">Suspended</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Stats Cards */}
-                <div className="mb-2 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    <Card className="relative overflow-hidden">
-                        <CardContent className="p-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-medium text-muted-foreground">Total Users</p>
-                                    <p className="text-3xl font-bold text-gray-900">{stats.total}</p>
-                                </div>
-                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-                                    <Users className="h-6 w-6 text-blue-600" />
-                                </div>
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100 p-6 shadow-sm dark:border-blue-800 dark:from-blue-950 dark:to-blue-900">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-2">
+                                <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Total Users</p>
+                                <p className="text-3xl font-bold text-blue-900 dark:text-blue-100">{stats.total}</p>
                             </div>
-                            <div className="absolute top-0 right-0 -mt-10 -mr-10 h-20 w-20 rounded-full bg-blue-50 opacity-50"></div>
-                        </CardContent>
-                    </Card>
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600">
+                                <Users className="h-6 w-6 text-white" />
+                            </div>
+                        </div>
+                    </div>
 
-                    <Card className="relative overflow-hidden">
-                        <CardContent className="p-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-medium text-muted-foreground">Active Users</p>
-                                    <p className="text-3xl font-bold text-gray-900">{stats.active}</p>
-                                </div>
-                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-                                    <Shield className="h-6 w-6 text-green-600" />
-                                </div>
+                    <div className="rounded-xl border border-green-200 bg-gradient-to-br from-green-50 to-green-100 p-6 shadow-sm dark:border-green-800 dark:from-green-950 dark:to-green-900">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-2">
+                                <p className="text-sm font-medium text-green-600 dark:text-green-400">Active Users</p>
+                                <p className="text-3xl font-bold text-green-900 dark:text-green-100">{stats.active}</p>
                             </div>
-                            <div className="absolute top-0 right-0 -mt-10 -mr-10 h-20 w-20 rounded-full bg-green-50 opacity-50"></div>
-                        </CardContent>
-                    </Card>
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-600">
+                                <Shield className="h-6 w-6 text-white" />
+                            </div>
+                        </div>
+                    </div>
 
-                    <Card className="relative overflow-hidden">
-                        <CardContent className="p-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-medium text-muted-foreground">Teachers</p>
-                                    <p className="text-3xl font-bold text-gray-900">{stats.teachers}</p>
-                                </div>
-                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100">
-                                    <GraduationCap className="h-6 w-6 text-purple-600" />
-                                </div>
+                    <div className="rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100 p-6 shadow-sm dark:border-purple-800 dark:from-purple-950 dark:to-purple-900">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-2">
+                                <p className="text-sm font-medium text-purple-600 dark:text-purple-400">Teachers</p>
+                                <p className="text-3xl font-bold text-purple-900 dark:text-purple-100">{stats.teachers}</p>
                             </div>
-                            <div className="absolute top-0 right-0 -mt-10 -mr-10 h-20 w-20 rounded-full bg-purple-50 opacity-50"></div>
-                        </CardContent>
-                    </Card>
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-600">
+                                <GraduationCap className="h-6 w-6 text-white" />
+                            </div>
+                        </div>
+                    </div>
 
-                    <Card className="relative overflow-hidden">
-                        <CardContent className="p-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-medium text-muted-foreground">Students</p>
-                                    <p className="text-3xl font-bold text-gray-900">{stats.students}</p>
-                                </div>
-                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-100">
-                                    <BookOpen className="h-6 w-6 text-orange-600" />
-                                </div>
+                    <div className="rounded-xl border border-orange-200 bg-gradient-to-br from-orange-50 to-orange-100 p-6 shadow-sm dark:border-orange-800 dark:from-orange-950 dark:to-orange-900">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-2">
+                                <p className="text-sm font-medium text-orange-600 dark:text-orange-400">Students</p>
+                                <p className="text-3xl font-bold text-orange-900 dark:text-orange-100">{stats.students}</p>
                             </div>
-                            <div className="absolute top-0 right-0 -mt-10 -mr-10 h-20 w-20 rounded-full bg-orange-50 opacity-50"></div>
-                        </CardContent>
-                    </Card>
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-600">
+                                <BookOpen className="h-6 w-6 text-white" />
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Users Grid */}
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {paginatedUsers.length === 0 ? (
-                        <div className="col-span-full py-12 text-center">
-                            <Briefcase className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-                            <p className="text-gray-500">No users found matching your criteria</p>
+                        <div className="col-span-full flex flex-col items-center justify-center py-16">
+                            <div className="rounded-full bg-gray-100 p-6 dark:bg-gray-800">
+                                <Users className="h-12 w-12 text-gray-400" />
+                            </div>
+                            <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">No users found</h3>
+                            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">No users match your current search criteria.</p>
                         </div>
                     ) : (
                         paginatedUsers.map((user) => (
-                            <Card key={user.id}>
-                                <div className="p-4">
-                                    <div className="mb-4 flex items-start justify-between">
-                                        <div className="flex flex-1 items-center">
-                                            <div className="flex-shrink-0">
-                                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800">
-                                                    <span className="text-lg font-medium text-gray-600 dark:text-gray-300">
-                                                        {getInitials(user.name)}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="ml-3">
-                                                <h3 className="text-base font-medium text-gray-900 dark:text-gray-100">{user.name}</h3>
-                                                <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
-                                            </div>
-                                        </div>
-                                    </div>
+                            <div
+                                key={user.id}
+                                className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-lg hover:shadow-gray-200/50 dark:border-gray-800 dark:bg-gray-900 dark:hover:shadow-gray-900/50"
+                            >
+                                {/* Status indicator */}
+                                <div
+                                    className={`absolute top-4 right-4 h-3 w-3 rounded-full ${
+                                        user.status === 'active' ? 'bg-green-500' : user.status === 'inactive' ? 'bg-gray-400' : 'bg-red-500'
+                                    }`}
+                                />
 
-                                    <div className="space-y-3">
-                                        <div className="flex items-center gap-2">
-                                            <Badge className={getRoleColor(user.role)}>
+                                {/* User Avatar and Info */}
+                                <div className="mb-4 flex items-start space-x-4">
+                                    <div
+                                        className={`flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full text-lg font-semibold text-white ${
+                                            user.role === 'teacher'
+                                                ? 'bg-gradient-to-br from-blue-500 to-blue-600'
+                                                : 'bg-gradient-to-br from-green-500 to-green-600'
+                                        }`}
+                                    >
+                                        {getInitials(user.name)}
+                                    </div>
+                                    <div className="min-w-0 flex-1">
+                                        <h3 className="truncate text-lg font-semibold text-gray-900 dark:text-gray-100">{user.name}</h3>
+                                        <p className="truncate text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
+                                        <div className="mt-2 flex items-center gap-2">
+                                            <Badge className={`${getRoleColor(user.role)} text-xs`}>
                                                 {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                                             </Badge>
-                                            <Badge className={getStatusColor(user.status)}>
+                                            <Badge variant="outline" className={`${getStatusColor(user.status)} text-xs`}>
                                                 {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
                                             </Badge>
                                         </div>
-
-                                        {user.phone && <p className="text-sm text-gray-500 dark:text-gray-400">📞 {user.phone}</p>}
-
-                                        {user.address && <p className="line-clamp-2 text-sm text-gray-500 dark:text-gray-400">📍 {user.address}</p>}
-
-                                        {user.date_of_birth && (
-                                            <p className="text-sm text-gray-500 dark:text-gray-400">🎂 {formatDate(user.date_of_birth)}</p>
-                                        )}
-                                    </div>
-
-                                    <div className="mt-4 flex justify-end gap-2 border-t pt-4">
-                                        <Button variant="outline" size="sm" onClick={() => handleEdit(user)}>
-                                            <Edit className="h-4 w-4" />
-                                        </Button>
-
-                                        {user.id !== auth.user.id && (
-                                            <AlertDialog open={deleteDialogOpen && userToDelete?.id === user.id}>
-                                                <AlertDialogTrigger asChild>
-                                                    <Button variant="destructive" size="sm" onClick={() => openDeleteDialog(user)}>
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                    <AlertDialogHeader>
-                                                        <AlertDialogTitle>Delete User</AlertDialogTitle>
-                                                        <AlertDialogDescription>
-                                                            Are you sure you want to delete <b>{userToDelete?.name}</b>? This action cannot be undone.
-                                                        </AlertDialogDescription>
-                                                    </AlertDialogHeader>
-                                                    <AlertDialogFooter>
-                                                        <AlertDialogCancel onClick={closeDeleteDialog}>Cancel</AlertDialogCancel>
-                                                        <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
-                                                            Delete
-                                                        </AlertDialogAction>
-                                                    </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
-                                        )}
                                     </div>
                                 </div>
-                            </Card>
+
+                                {/* User Details */}
+                                <div className="space-y-3">
+                                    {user.phone && (
+                                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                                            <div className="flex h-6 w-6 items-center justify-center rounded bg-gray-100 dark:bg-gray-800">📞</div>
+                                            <span className="truncate">{user.phone}</span>
+                                        </div>
+                                    )}
+
+                                    {user.address && (
+                                        <div className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-300">
+                                            <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded bg-gray-100 dark:bg-gray-800">
+                                                📍
+                                            </div>
+                                            <span className="line-clamp-2">{user.address}</span>
+                                        </div>
+                                    )}
+
+                                    {user.date_of_birth && (
+                                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                                            <div className="flex h-6 w-6 items-center justify-center rounded bg-gray-100 dark:bg-gray-800">🎂</div>
+                                            <span className="truncate">{formatDate(user.date_of_birth)}</span>
+                                        </div>
+                                    )}
+
+                                    {user.created_at && (
+                                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                                            <div className="flex h-6 w-6 items-center justify-center rounded bg-gray-100 dark:bg-gray-800">📅</div>
+                                            <span className="truncate">Joined {formatDate(user.created_at)}</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="mt-6 flex items-center justify-end gap-2 border-t border-gray-100 pt-4 dark:border-gray-800">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleEdit(user)}
+                                        className="flex items-center gap-1 hover:bg-blue-50 hover:text-blue-600"
+                                    >
+                                        <Edit className="h-4 w-4" />
+                                        Edit
+                                    </Button>
+
+                                    {user.id !== auth.user.id && (
+                                        <AlertDialog open={deleteDialogOpen && userToDelete?.id === user.id}>
+                                            <AlertDialogTrigger asChild>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => openDeleteDialog(user)}
+                                                    className="flex items-center gap-1 hover:bg-red-50 hover:text-red-600"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                    Delete
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>Delete User</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        Are you sure you want to delete <b>{userToDelete?.name}</b>? This action cannot be undone.
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel onClick={closeDeleteDialog}>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+                                                        Delete
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    )}
+                                </div>
+                            </div>
                         ))
                     )}
                 </div>
 
-                {totalPages > 1 && <PaginationComponent currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />}
+                {/* Pagination */}
+                {totalPages > 1 && (
+                    <div className="mt-8">
+                        <PaginationComponent currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+                    </div>
+                )}
             </div>
             <Toaster position="top-right" richColors closeButton />
         </AppLayout>

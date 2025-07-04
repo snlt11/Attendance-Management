@@ -53,4 +53,29 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Get the classes that this user teaches (for teachers)
+     */
+    public function teachingClasses()
+    {
+        return $this->hasMany(\App\Models\ClassModel::class, 'user_id');
+    }
+
+    /**
+     * Get the classes that this user is enrolled in (for students)
+     */
+    public function enrolledClasses()
+    {
+        return $this->belongsToMany(\App\Models\ClassModel::class, 'class_students', 'user_id', 'class_id')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the attendance records for this user
+     */
+    public function attendanceRecords()
+    {
+        return $this->hasMany(\App\Models\Attendance::class, 'user_id');
+    }
 }
