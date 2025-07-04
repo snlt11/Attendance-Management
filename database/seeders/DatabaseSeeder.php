@@ -105,7 +105,7 @@ class DatabaseSeeder extends Seeder
                 'location_id' => $location->id,
                 'user_id' => $teacher->id,
                 'name' => $subject->name . ' Class',
-                'description' => $faker->sentence,
+                'description' => $subject->description ?: $faker->sentence,
                 'status' => 'active',
                 'registration_code' => strtoupper($faker->bothify('CL####')),
                 // All classes in 2025
