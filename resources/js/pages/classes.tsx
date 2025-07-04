@@ -1661,18 +1661,50 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                         </h3>
                                     </div>
 
-                                    <div className="h-[350px] overflow-y-auto rounded-lg border-2 border-gray-200 p-4">
+                                    <div
+                                        className="h-[350px] overflow-y-auto rounded-lg border-2 border-gray-200 p-4"
+                                        style={{
+                                            transform: 'translateZ(0)',
+                                            willChange: 'scroll-position',
+                                            contain: 'layout style paint',
+                                            overflowAnchor: 'none',
+                                        }}
+                                    >
                                         {classStudents.length > 0 ? (
-                                            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                                            <div
+                                                className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3"
+                                                style={{
+                                                    minHeight: 'min-content',
+                                                    contain: 'layout style',
+                                                    isolation: 'isolate',
+                                                }}
+                                            >
                                                 {classStudents.map((student) => (
                                                     <div
                                                         key={student.id}
                                                         className="group relative flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3 transition-all hover:bg-blue-100"
+                                                        style={{
+                                                            transform: 'translateZ(0)',
+                                                            contain: 'layout style paint',
+                                                            willChange: 'auto',
+                                                        }}
                                                     >
-                                                        <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-500 text-white">
+                                                        <div
+                                                            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-500 text-white"
+                                                            style={{
+                                                                backfaceVisibility: 'hidden',
+                                                                contain: 'strict',
+                                                            }}
+                                                        >
                                                             <span className="text-sm font-medium">{student.name.charAt(0).toUpperCase()}</span>
                                                         </div>
-                                                        <div className="min-w-0 flex-1">
+                                                        <div
+                                                            className="min-w-0 flex-1"
+                                                            style={{
+                                                                backfaceVisibility: 'hidden',
+                                                                contain: 'layout style',
+                                                            }}
+                                                        >
                                                             <p className="truncate text-sm font-medium text-gray-900">{student.name}</p>
                                                             <p className="truncate text-xs text-gray-600">{student.email}</p>
                                                         </div>
