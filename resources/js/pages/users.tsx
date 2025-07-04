@@ -40,16 +40,6 @@ interface UserItem {
     updated_at?: string;
 }
 
-interface UserFormData {
-    name: string;
-    email: string;
-    phone: string;
-    role: string;
-    status: string;
-    address: string;
-    date_of_birth: string;
-}
-
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Users',

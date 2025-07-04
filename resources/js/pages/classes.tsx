@@ -584,7 +584,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                         });
                     } else {
                         // Handle other validation errors
-                        Object.entries(data.errors).forEach(([_, messages]) => {
+                        Object.entries(data.errors).forEach(([field, messages]) => {
                             if (Array.isArray(messages)) {
                                 messages.forEach((message) => {
                                     toast.error(String(message), { duration: 5000 });
