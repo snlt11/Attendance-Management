@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Location;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class LocationController extends Controller
@@ -74,8 +75,55 @@ class LocationController extends Controller
 
     public function destroy(Location $location)
     {
-        $location->delete();
+        try {
+            // Check if location is being used by any classes
+            $classCount = $location->classes()->count();
 
-        return response()->json(['success' => true]);
+            if ($classCount > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Cannot delete location '{$location->name}' because it is currently being used by {$classCount} " .
+                        ($classCount === 1 ? 'class' : 'classes') . ". Please reassign or delete those classes first."
+                ], 422);
+            }
+
+            // Check if location is being used by any other related models
+            // Add more relationship checks as needed
+
+            $location->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Location deleted successfully.'
+            ]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle foreign key constraint violations
+            if ($e->getCode() === '23000') {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Cannot delete location '{$location->name}' because it is being referenced by other records. Please remove those references first."
+                ], 422);
+            }
+
+            Log::error('Location deletion failed', [
+                'location_id' => $location->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to delete location. Please try again.'
+            ], 500);
+        } catch (\Exception $e) {
+            Log::error('Unexpected error during location deletion', [
+                'location_id' => $location->id,
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An unexpected error occurred. Please try again.'
+            ], 500);
+        }
     }
 }

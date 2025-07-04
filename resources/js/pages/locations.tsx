@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
@@ -526,10 +526,14 @@ interface ErrorState {
 const PaginationComponent = ({
     currentPage,
     totalPages,
+    totalItems,
+    itemsPerPage,
     onPageChange,
 }: {
     currentPage: number;
     totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
     onPageChange: (page: number) => void;
 }) => {
     if (totalPages <= 1) return null;
@@ -576,50 +580,54 @@ const PaginationComponent = ({
     const pageNumbers = getPageNumbers();
 
     return (
-        <div className="mt-6 flex items-center justify-between">
-            <div className="text-sm text-gray-700">
-                Showing page {currentPage} of {totalPages}
+        <div className="mt-8 flex items-center justify-between border-t pt-6">
+            <div className="text-sm text-gray-700 dark:text-gray-300">
+                Showing <span className="font-medium">{Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)}</span> to{' '}
+                <span className="font-medium">{Math.min(currentPage * itemsPerPage, totalItems)}</span> of{' '}
+                <span className="font-medium">{totalItems}</span> locations
             </div>
-            <div className="flex items-center space-x-1">
-                <Button variant="outline" size="sm" onClick={() => onPageChange(currentPage - 1)} disabled={currentPage === 1} className="px-3 py-2">
-                    <ChevronLeft className="mr-1 h-4 w-4" />
+            <div className="flex items-center space-x-2">
+                <Button variant="outline" size="sm" onClick={() => onPageChange(currentPage - 1)} disabled={currentPage === 1} className="gap-1">
+                    <ChevronLeft className="h-4 w-4" />
                     Previous
                 </Button>
 
-                {pageNumbers.map((page, index) => {
-                    if (page === '...') {
-                        return (
-                            <span key={`ellipsis-${index}`} className="px-3 py-2 text-gray-500">
-                                ...
-                            </span>
-                        );
-                    }
+                <div className="hidden sm:flex sm:items-center sm:space-x-1">
+                    {pageNumbers.map((page, index) => {
+                        if (page === '...') {
+                            return (
+                                <span key={`ellipsis-${index}`} className="px-2 py-1 text-gray-500 dark:text-gray-400">
+                                    ...
+                                </span>
+                            );
+                        }
 
-                    const pageNum = page as number;
-                    return (
-                        <Button
-                            key={pageNum}
-                            variant={pageNum === currentPage ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => onPageChange(pageNum)}
-                            className={`min-w-[2.5rem] px-3 py-2 ${
-                                pageNum === currentPage ? 'bg-primary text-primary-foreground' : 'hover:bg-gray-50'
-                            }`}
-                        >
-                            {pageNum}
-                        </Button>
-                    );
-                })}
+                        const pageNum = page as number;
+                        return (
+                            <Button
+                                key={pageNum}
+                                variant={pageNum === currentPage ? 'default' : 'outline'}
+                                size="sm"
+                                onClick={() => onPageChange(pageNum)}
+                                className={`h-9 w-9 p-0 ${
+                                    pageNum === currentPage ? 'bg-blue-600 text-white hover:bg-blue-700' : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                                }`}
+                            >
+                                {pageNum}
+                            </Button>
+                        );
+                    })}
+                </div>
 
                 <Button
                     variant="outline"
                     size="sm"
                     onClick={() => onPageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="px-3 py-2"
+                    className="gap-1"
                 >
                     Next
-                    <ChevronRight className="ml-1 h-4 w-4" />
+                    <ChevronRight className="h-4 w-4" />
                 </Button>
             </div>
         </div>
@@ -635,7 +643,7 @@ export default function Locations({ locations: initialLocations }: LocationsPage
     const [processing, setProcessing] = useState(false);
     const [selectedCoords, setSelectedCoords] = useState<{ lat: number; lng: number } | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 6;
+    const itemsPerPage = 9;
 
     const [formData, setFormData] = useState<FormData>({
         name: '',
@@ -803,14 +811,41 @@ export default function Locations({ locations: initialLocations }: LocationsPage
             });
 
             const data = (await response.json()) as APIResponse<null>;
-            if (!data.success) throw new Error(data.message || 'API error');
+
+            if (!response.ok) {
+                // Handle different error statuses
+                if (response.status === 422) {
+                    // Validation error - location has related data
+                    toast.error(data.message || 'Cannot delete location due to related data.');
+                } else {
+                    // Other server errors
+                    toast.error(data.message || 'Failed to delete location. Please try again.');
+                }
+                closeDeleteDialog();
+                return;
+            }
+
+            if (!data.success) {
+                toast.error(data.message || 'Failed to delete location.');
+                closeDeleteDialog();
+                return;
+            }
 
             setLocations((prev) => prev.filter((location) => location.id !== locationToDelete.id));
-            toast.success('Location deleted successfully!');
+            toast.success(data.message || 'Location deleted successfully!');
+
+            // Adjust current page if necessary
+            const newFilteredCount = filteredLocations.length - 1;
+            const newTotalPages = Math.ceil(newFilteredCount / itemsPerPage);
+            if (currentPage > newTotalPages && newTotalPages > 0) {
+                setCurrentPage(newTotalPages);
+            }
+
             closeDeleteDialog();
         } catch (error) {
             console.error('Failed to delete location:', error);
-            toast.error('Failed to delete location. Please try again.');
+            toast.error('Network error. Please check your connection and try again.');
+            closeDeleteDialog();
         } finally {
             setDeletingId(null);
         }
@@ -873,27 +908,29 @@ export default function Locations({ locations: initialLocations }: LocationsPage
                 crossOrigin=""
             />
 
-            <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                <div className="flex items-center justify-between">
-                    <div className="relative">
-                        <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400" />
-                        <Input
-                            type="search"
-                            placeholder="Search locations..."
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
-                            className="max-w-sm pl-10"
-                        />
+            <div className="flex h-full flex-1 flex-col gap-6 p-6">
+                {/* Header Section */}
+                <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+                    <div>
+                        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Locations</h1>
+                        <p className="text-muted-foreground">Manage your physical locations and coordinates</p>
                     </div>
+
                     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button variant="default" onClick={handleCreateNew}>
+                            <Button className="bg-blue-600 hover:bg-blue-700" onClick={handleCreateNew}>
                                 <Plus className="mr-2 h-4 w-4" />
-                                Add New Location
+                                Create New Location
                             </Button>
                         </DialogTrigger>
                         <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto" aria-describedby="location-dialog-description">
                             <DialogHeader>
-                                <DialogTitle>{isEditing ? 'Edit Location' : 'Add New Location'}</DialogTitle>
+                                <DialogTitle>{isEditing ? 'Edit Location' : 'Create New Location'}</DialogTitle>
+                                <DialogDescription>
+                                    {isEditing
+                                        ? 'Edit the location details and position on the map below.'
+                                        : 'Fill in the location details and select a position on the map below.'}
+                                </DialogDescription>
                             </DialogHeader>
                             <div id="location-dialog-description" className="sr-only">
                                 {isEditing
@@ -902,9 +939,7 @@ export default function Locations({ locations: initialLocations }: LocationsPage
                             </div>
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="name" className="text-gray-700 dark:text-gray-300">
-                                        Location Name
-                                    </Label>
+                                    <Label htmlFor="name">Location Name *</Label>
                                     <Input
                                         id="name"
                                         value={formData.name}
@@ -912,13 +947,12 @@ export default function Locations({ locations: initialLocations }: LocationsPage
                                             setFormData((prev) => ({ ...prev, name: e.target.value }))
                                         }
                                         placeholder="e.g., Main Campus Library"
-                                        className="dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:placeholder:text-gray-500"
                                     />
                                     {errors.name && <p className="text-sm text-red-600">{errors.name}</p>}
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label>Select Location on Map</Label>
+                                    <Label>Select Location on Map *</Label>
                                     <StableMap
                                         onLocationSelect={handleLocationSelect}
                                         selectedCoords={selectedCoords}
@@ -931,32 +965,20 @@ export default function Locations({ locations: initialLocations }: LocationsPage
                                 {selectedCoords && (
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <Label className="text-gray-700 dark:text-gray-300">Latitude</Label>
-                                            <Input
-                                                value={formData.latitude}
-                                                readOnly
-                                                className="bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-                                            />
+                                            <Label>Latitude</Label>
+                                            <Input value={formData.latitude} readOnly className="bg-gray-50 dark:bg-gray-800" />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label className="text-gray-700 dark:text-gray-300">Longitude</Label>
-                                            <Input
-                                                value={formData.longitude}
-                                                readOnly
-                                                className="bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-                                            />
+                                            <Label>Longitude</Label>
+                                            <Input value={formData.longitude} readOnly className="bg-gray-50 dark:bg-gray-800" />
                                         </div>
                                     </div>
                                 )}
 
                                 {formData.address && (
                                     <div className="space-y-2">
-                                        <Label className="text-gray-700 dark:text-gray-300">Address</Label>
-                                        <Input
-                                            value={formData.address}
-                                            readOnly
-                                            className="bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
-                                        />
+                                        <Label>Address</Label>
+                                        <Input value={formData.address} readOnly className="bg-gray-50 dark:bg-gray-800" />
                                     </div>
                                 )}
 
@@ -964,16 +986,16 @@ export default function Locations({ locations: initialLocations }: LocationsPage
                                     <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                                         Cancel
                                     </Button>
-                                    <Button type="submit" variant="default" disabled={processing}>
+                                    <Button type="submit" disabled={processing}>
                                         {processing ? (
                                             <>
                                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                Saving...
+                                                {isEditing ? 'Updating...' : 'Creating...'}
                                             </>
                                         ) : isEditing ? (
-                                            'Update'
+                                            'Update Location'
                                         ) : (
-                                            'Save'
+                                            'Create Location'
                                         )}
                                     </Button>
                                 </div>
@@ -982,100 +1004,188 @@ export default function Locations({ locations: initialLocations }: LocationsPage
                     </Dialog>
                 </div>
 
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {/* Search Bar */}
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="relative max-w-sm flex-1">
+                        <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                            type="search"
+                            placeholder="Search locations..."
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearch(e.target.value)}
+                            className="pl-10"
+                        />
+                    </div>
+                </div>
+
+                {/* Statistics Cards */}
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100 p-6 shadow-sm dark:border-blue-800 dark:from-blue-950 dark:to-blue-900">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-2">
+                                <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Total Locations</p>
+                                <p className="text-3xl font-bold text-blue-900 dark:text-blue-100">{locations.length}</p>
+                            </div>
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600">
+                                <MapPin className="h-6 w-6 text-white" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="rounded-xl border border-green-200 bg-gradient-to-br from-green-50 to-green-100 p-6 shadow-sm dark:border-green-800 dark:from-green-950 dark:to-green-900">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-2">
+                                <p className="text-sm font-medium text-green-600 dark:text-green-400">Active Locations</p>
+                                <p className="text-3xl font-bold text-green-900 dark:text-green-100">{filteredLocations.length}</p>
+                            </div>
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-600">
+                                <Navigation className="h-6 w-6 text-white" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100 p-6 shadow-sm dark:border-purple-800 dark:from-purple-950 dark:to-purple-900">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-2">
+                                <p className="text-sm font-medium text-purple-600 dark:text-purple-400">Displayed</p>
+                                <p className="text-3xl font-bold text-purple-900 dark:text-purple-100">{paginatedLocations.length}</p>
+                            </div>
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-600">
+                                <MapPin className="h-6 w-6 text-white" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Locations Grid */}
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                     {paginatedLocations.length === 0 ? (
-                        <div className="col-span-full py-12 text-center">
-                            <MapPin className="mx-auto mb-4 h-12 w-12 text-gray-400 dark:text-gray-600" />
-                            <p className="text-gray-500 dark:text-gray-400">No locations found</p>
+                        <div className="col-span-full flex flex-col items-center justify-center py-16">
+                            <div className="rounded-full bg-gray-100 p-6 dark:bg-gray-800">
+                                <MapPin className="h-12 w-12 text-gray-400" />
+                            </div>
+                            <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-gray-100">No locations found</h3>
+                            <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">No locations match your current search criteria.</p>
                         </div>
                     ) : (
                         paginatedLocations.map((location: Location) => (
                             <div
                                 key={location.id}
-                                className="rounded-lg border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-900"
+                                className="group relative overflow-hidden rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-200 hover:shadow-lg hover:shadow-gray-200/50 dark:border-gray-800 dark:bg-gray-900 dark:hover:shadow-gray-900/50"
                             >
-                                <div className="p-6">
-                                    <div className="mb-4 flex items-start justify-between">
-                                        <div className="flex-1">
-                                            <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-gray-100">{location.name}</h3>
-                                            <div className="space-y-1">
-                                                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                                    <MapPin className="mr-2 h-4 w-4 text-gray-400" />
-                                                    <span className="line-clamp-2">{location.address}</span>
-                                                </div>
-                                            </div>
+                                {/* Location Header */}
+                                <div className="mb-4 flex items-start justify-between">
+                                    <div className="flex items-center space-x-3">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 text-white">
+                                            <MapPin className="h-6 w-6" />
                                         </div>
-                                        <div className="ml-2 flex space-x-1">
-                                            <Button onClick={() => handleEdit(location)} variant="outline" size="sm" title="Edit location">
-                                                <Edit className="h-4 w-4" />
-                                            </Button>
-                                            <AlertDialog
-                                                open={deleteDialogOpen && locationToDelete?.id === location.id}
-                                                onOpenChange={setDeleteDialogOpen}
-                                            >
-                                                <AlertDialogTrigger asChild>
-                                                    <Button
-                                                        onClick={() => openDeleteDialog(location)}
-                                                        variant="destructive"
-                                                        size="sm"
-                                                        title="Delete location"
+                                        <div className="min-w-0 flex-1">
+                                            <h3 className="truncate text-lg font-semibold text-gray-900 dark:text-gray-100">{location.name}</h3>
+                                            {location.address && (
+                                                <p className="line-clamp-2 text-sm text-gray-600 dark:text-gray-400">{location.address}</p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Action Buttons - Always visible */}
+                                    <div className="flex gap-1 opacity-100">
+                                        <Button
+                                            onClick={() => handleEdit(location)}
+                                            variant="ghost"
+                                            size="sm"
+                                            title="Edit location"
+                                            className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-800"
+                                        >
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
+                                        <AlertDialog
+                                            open={deleteDialogOpen && locationToDelete?.id === location.id}
+                                            onOpenChange={setDeleteDialogOpen}
+                                        >
+                                            <AlertDialogTrigger asChild>
+                                                <Button
+                                                    onClick={() => openDeleteDialog(location)}
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    title="Delete location"
+                                                    disabled={deletingId === location.id}
+                                                    className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
+                                                >
+                                                    {deletingId === location.id ? (
+                                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                                    ) : (
+                                                        <Trash2 className="h-4 w-4" />
+                                                    )}
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle className="flex items-center gap-2">
+                                                        <AlertCircle className="h-5 w-5 text-red-600" />
+                                                        Delete Location
+                                                    </AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        Are you sure you want to delete{' '}
+                                                        <span className="font-semibold">{locationToDelete?.name}</span>?
+                                                        <br />
+                                                        <br />
+                                                        <div className="rounded-md bg-amber-50 p-3 text-amber-800 dark:bg-amber-950 dark:text-amber-200">
+                                                            <strong>Warning:</strong> This location cannot be deleted if it's currently being used by
+                                                            any classes. You'll need to reassign or delete those classes first.
+                                                        </div>
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel onClick={closeDeleteDialog}>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction
+                                                        onClick={handleDelete}
                                                         disabled={deletingId === location.id}
+                                                        className="bg-red-600 hover:bg-red-700"
                                                     >
                                                         {deletingId === location.id ? (
-                                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                                            <>
+                                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                                Deleting...
+                                                            </>
                                                         ) : (
-                                                            <Trash2 className="h-4 w-4" />
+                                                            'Delete Location'
                                                         )}
-                                                    </Button>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                    <AlertDialogHeader>
-                                                        <AlertDialogTitle>Delete Location</AlertDialogTitle>
-                                                        <AlertDialogDescription>
-                                                            Are you sure you want to delete <b>{locationToDelete?.name}</b>? This action cannot be
-                                                            undone.
-                                                        </AlertDialogDescription>
-                                                    </AlertDialogHeader>
-                                                    <AlertDialogFooter>
-                                                        <AlertDialogCancel onClick={closeDeleteDialog}>Cancel</AlertDialogCancel>
-                                                        <AlertDialogAction onClick={handleDelete} disabled={deletingId === location.id}>
-                                                            {deletingId === location.id ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Delete'}
-                                                        </AlertDialogAction>
-                                                    </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
-                                        </div>
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
                                     </div>
+                                </div>
 
-                                    <div className="space-y-2">
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span className="text-gray-500 dark:text-gray-400">Latitude:</span>
-                                            <Badge variant="secondary" className="dark:bg-gray-800 dark:text-gray-200">
-                                                {location.latitude.toFixed(6)}
-                                            </Badge>
-                                        </div>
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span className="text-gray-500 dark:text-gray-400">Longitude:</span>
-                                            <Badge variant="secondary" className="dark:bg-gray-800 dark:text-gray-200">
-                                                {location.longitude.toFixed(6)}
-                                            </Badge>
-                                        </div>
+                                {/* Coordinates */}
+                                <div className="mb-4 space-y-2">
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-gray-500 dark:text-gray-400">Latitude:</span>
+                                        <Badge variant="secondary" className="font-mono text-xs dark:bg-gray-800 dark:text-gray-200">
+                                            {location.latitude.toFixed(6)}
+                                        </Badge>
                                     </div>
+                                    <div className="flex items-center justify-between text-sm">
+                                        <span className="text-gray-500 dark:text-gray-400">Longitude:</span>
+                                        <Badge variant="secondary" className="font-mono text-xs dark:bg-gray-800 dark:text-gray-200">
+                                            {location.longitude.toFixed(6)}
+                                        </Badge>
+                                    </div>
+                                </div>
 
-                                    <div className="mt-4 border-t pt-4 dark:border-gray-700">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="w-full dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700"
-                                            onClick={() => {
-                                                const url = `https://www.google.com/maps?q=${location.latitude},${location.longitude}`;
-                                                window.open(url, '_blank');
-                                            }}
-                                        >
-                                            <MapPin className="mr-2 h-4 w-4" />
-                                            View on Google Maps
-                                        </Button>
-                                    </div>
+                                {/* Actions */}
+                                <div className="border-t pt-4 dark:border-gray-700">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="w-full transition-colors hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-950 dark:hover:text-blue-300"
+                                        onClick={() => {
+                                            const url = `https://www.google.com/maps?q=${location.latitude},${location.longitude}`;
+                                            window.open(url, '_blank');
+                                        }}
+                                    >
+                                        <Navigation className="mr-2 h-4 w-4" />
+                                        View on Maps
+                                    </Button>
                                 </div>
                             </div>
                         ))
@@ -1083,7 +1193,15 @@ export default function Locations({ locations: initialLocations }: LocationsPage
                 </div>
 
                 {/* Pagination */}
-                {totalPages > 1 && <PaginationComponent currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />}
+                {totalPages > 1 && (
+                    <PaginationComponent
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalItems={filteredLocations.length}
+                        itemsPerPage={itemsPerPage}
+                        onPageChange={handlePageChange}
+                    />
+                )}
             </div>
             <Toaster position="top-right" richColors />
         </AppLayout>
