@@ -21,6 +21,7 @@ class ClassController extends Controller
     {
         try {
             $query = ClassModel::with(['subject', 'teacher', 'location', 'schedules'])
+                ->withCount('students as enrolled_students_count')  // Add this line
                 ->when($request->search, function ($query, $search) {
                     $query->where(function ($q) use ($search) {
                         $q->whereHas('subject', function ($q) use ($search) {
@@ -510,6 +511,36 @@ class ClassController extends Controller
         } catch (\Exception $e) {
             Log::error('Failed to search available students for class ' . $class->id . ': ' . $e->getMessage());
             return response()->json(['message' => 'Failed to search students.'], 500);
+        }
+    }
+
+    public function generateClassCode(ClassModel $class)
+    {
+        try {
+            DB::beginTransaction();
+
+            $newCode = Helper::generate();
+            $expiresAt = now()->addDays(30);
+
+            $class->update([
+                'registration_code' => $newCode,
+                'registration_code_expires_at' => $expiresAt
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'New class code generated successfully',
+                'registration_code' => $newCode,
+                'expires_at' => $expiresAt->toISOString()
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Failed to generate class code for class ' . $class->id . ': ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Failed to generate new class code.',
+                'error' => app()->environment('local') ? $e->getMessage() : 'An unexpected error occurred.'
+            ], 500);
         }
     }
 }

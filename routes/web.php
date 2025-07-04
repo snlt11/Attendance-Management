@@ -28,12 +28,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('classes/{class}', [ClassController::class, 'update'])->name('classes.update');
     Route::delete('classes/{class}', [ClassController::class, 'destroy'])->name('classes.destroy');
     Route::post('classes/{class}/generate-qr', [ClassController::class, 'generateQR'])->name('classes.generate-qr');
-
-    // Class students routes
-    Route::get('classes/{class}/students', [ClassController::class, 'getStudents'])->name('classes.students');
-    Route::get('classes/{class}/students/search', [ClassController::class, 'searchAvailableStudents'])->name('classes.students.search');
-    Route::post('classes/{class}/students', [ClassController::class, 'addStudent'])->name('classes.students.add');
-    Route::delete('classes/{class}/students/{user}', [ClassController::class, 'removeStudent'])->name('classes.students.remove');
+    Route::post('classes/{class}/generate-class-code', [ClassController::class, 'generateClassCode'])->name('classes.generate-class-code.store');
+    
+    // Add these class student management routes
+    Route::prefix('classes/{class}')->group(function () {
+        Route::get('students', [ClassController::class, 'getStudents'])->name('classes.students.index');
+        Route::get('students/search', [ClassController::class, 'searchAvailableStudents'])->name('classes.students.search');
+        Route::post('students', [ClassController::class, 'addStudent'])->name('classes.students.store');
+        Route::delete('students/{user}', [ClassController::class, 'removeStudent'])->name('classes.students.destroy');
+    });
 
     // Subject routes
     Route::get('subjects', [SubjectController::class, 'index'])->name('subjects.index');

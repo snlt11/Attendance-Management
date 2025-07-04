@@ -89,6 +89,7 @@ interface ClassItem {
     // New schedule structure
     class_schedules: ClassSchedule[];
     created_at: string;
+    enrolled_students_count: number; // Add this field
 }
 
 interface Student {
@@ -348,16 +349,25 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                     },
                 },
             );
-            toast.success('Student added successfully!');
+
+            // Update local state
+            setClasses((prevClasses) =>
+                prevClasses.map((cls) =>
+                    cls.id === detailsClass.id ? { ...cls, enrolled_students_count: (cls.enrolled_students_count || 0) + 1 } : cls,
+                ),
+            );
+
+            // Update class students list
+            const selectedStudent = availableStudents.find((s) => s.id === studentToAdd);
+            if (selectedStudent) {
+                setClassStudents((prev) => [...prev, selectedStudent]);
+            }
+
+            // Update available students
+            setAvailableStudents((prev) => prev.filter((s) => s.id !== studentToAdd));
+
             setStudentToAdd(null);
-            // Refresh student list and available students
-            const response = await axios.get(`/classes/${detailsClass.id}/students`);
-            setClassStudents(response.data.students);
-            // Refresh available students
-            const availableResponse = await axios.get(`/classes/${detailsClass.id}/students/search`, {
-                params: { search: '' }, // Empty search to get all available students
-            });
-            setAvailableStudents(availableResponse.data.students);
+            toast.success('Student added successfully!');
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Failed to add student.');
         } finally {
@@ -386,8 +396,21 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                     'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '',
                 },
             });
-            toast.success('Student removed successfully!');
+
+            // Update local state - decrease the enrolled students count
+            setClasses((prevClasses) =>
+                prevClasses.map((cls) =>
+                    cls.id === detailsClass.id ? { ...cls, enrolled_students_count: Math.max((cls.enrolled_students_count || 0) - 1, 0) } : cls,
+                ),
+            );
+
+            // Remove student from class students list
             setClassStudents((prev) => prev.filter((s) => s.id !== studentToRemove.id));
+
+            // Add student back to available students
+            setAvailableStudents((prev) => [...prev, studentToRemove]);
+
+            toast.success('Student removed successfully!');
             closeRemoveStudentDialog();
         } catch (error: any) {
             toast.error(error.response?.data?.message || 'Failed to remove student.');
@@ -687,6 +710,51 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
         }
     };
 
+    const handleGenerateClassCode = async (classItem: ClassItem) => {
+        try {
+            // Show loading toast
+            const loadingToastId = toast.loading('Generating new class code...');
+
+            const response = await fetch(`/classes/${classItem.id}/generate-class-code`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '',
+                },
+                credentials: 'same-origin',
+            });
+
+            const data = await response.json();
+
+            // Dismiss loading toast
+            toast.dismiss(loadingToastId);
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to generate new class code');
+            }
+
+            // Update the class in local state with new registration code
+            setClasses((prevClasses) =>
+                prevClasses.map((cls) => (cls.id === classItem.id ? { ...cls, registration_code: data.registration_code } : cls)),
+            );
+
+            // Show success message with the new code
+            toast.success(`New class code generated: ${data.registration_code}`, {
+                duration: 6000,
+            });
+
+            // Additional info toast
+            toast.info('New class code is valid for 30 days', {
+                duration: 4000,
+            });
+        } catch (error) {
+            console.error('Failed to generate class code:', error);
+            toast.error(error instanceof Error ? error.message : 'Failed to generate new class code');
+        }
+    };
+
     const resetForm = () => {
         setFormData({
             name: '',
@@ -758,7 +826,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
         return (
             <div className="group relative overflow-visible rounded-xl border border-gray-200/50 bg-white/80 p-0 shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-blue-200 hover:shadow-lg hover:shadow-blue-100/50 dark:border-gray-800/50 dark:bg-gray-900/80 dark:hover:border-blue-800 dark:hover:shadow-blue-900/20">
                 {/* Header with gradient background */}
-                <div className="relative bg-gradient-to-br from-blue-50 to-indigo-100 p-6 dark:from-blue-950/50 dark:to-indigo-950/50">
+                <div className="relative rounded-xl bg-gradient-to-br from-blue-50 to-indigo-100 p-6 dark:from-blue-950/50 dark:to-indigo-950/50">
                     {/* Top actions */}
                     <div className="absolute top-4 right-4 z-20">
                         {auth.user.role === 'teacher' ? (
@@ -812,6 +880,18 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                     >
                                         <QrCode className="h-4 w-4" />
                                         <span>Generate QR</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            console.log('Generate Class Code clicked for:', classItem.name);
+                                            handleGenerateClassCode(classItem); // Changed from handleGenerateQR
+                                        }}
+                                        className="flex cursor-pointer items-center gap-2"
+                                    >
+                                        <Hash className="h-4 w-4" /> {/* Changed from QrCode to Hash icon */}
+                                        <span>New Class Code</span>
                                     </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem
@@ -1296,7 +1376,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                         <div>
                                             <h3 className="text-sm font-medium text-green-600 dark:text-green-400">Active Students</h3>
                                             <p className="text-3xl font-bold text-green-900 dark:text-green-100">
-                                                {classes.reduce((sum, cls) => sum + (cls.max_students || 0), 0)}
+                                                {classes.reduce((sum, cls) => sum + (cls.enrolled_students_count || 0), 0)}
                                             </p>
                                         </div>
                                     </div>
