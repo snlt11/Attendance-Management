@@ -10,22 +10,40 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import axios from 'axios';
 import { debounce } from 'lodash';
-import { BookOpen, ChevronLeft, ChevronRight, Edit, Loader2, Plus, QrCode, Search, Trash2, UserPlus, Users, X, MoreVertical, MapPin, Clock, Hash, GraduationCap } from 'lucide-react';
+import {
+    BookOpen,
+    ChevronLeft,
+    ChevronRight,
+    Clock,
+    Edit,
+    GraduationCap,
+    Hash,
+    Loader2,
+    MapPin,
+    MoreVertical,
+    Plus,
+    QrCode,
+    Search,
+    Trash2,
+    UserPlus,
+    Users,
+    X,
+} from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import type React from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast, Toaster } from 'sonner';
 
 // Format function for the countdown timer
@@ -738,108 +756,167 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
 
     const ClassCard = ({ classItem }: { classItem: ClassItem }) => {
         return (
-            <div className="group relative rounded-lg border bg-card p-6 shadow-sm transition-all hover:shadow-md dark:border-gray-800 dark:bg-gray-800/50 dark:hover:bg-gray-800/70">
-                <div className="flex flex-col space-y-4">
-                    <div className="space-y-3">
-                        <div className="space-y-1">
-                            <h3 className="text-xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
-                                {classItem.name || classItem.subject.name}
-                                {classItem.subject.code && (
-                                    <span className="ml-2 text-sm font-normal text-muted-foreground dark:text-gray-400">
-                                        ({classItem.subject.code})
-                                    </span>
-                                )}
-                            </h3>
-                            <div className="text-sm text-muted-foreground dark:text-gray-400">
-                                {classItem.description || `Teaching of ${classItem.subject.name} by ${classItem.teacher?.name}`}
-                            </div>
-                        </div>
-
-                        <div className="grid gap-2 text-sm text-muted-foreground dark:text-gray-400">
-                            <div className="flex items-center gap-2">
-                                <BookOpen className="h-4 w-4" />
-                                <span>{classItem.teacher?.name}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path
-                                        d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    />
-                                    <path d="M12 7V12L15 15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                                <span className="text-xs">{formatSchedules(classItem.class_schedules)}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path
-                                        d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    />
-                                    <circle
-                                        cx="12"
-                                        cy="10"
-                                        r="3"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round"
-                                    />
-                                </svg>
-                                <span>{classItem.location.name}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="1.5" />
-                                    <path d="M8 12h8M12 8v8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                                </svg>
-                                <span>{classItem.registration_code}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="mt-4 flex flex-wrap items-center gap-2">
-                        {auth.user.role === 'teacher' && (
-                            <>
-                                <Button variant="outline" size="sm" onClick={() => handleEdit(classItem)}>
-                                    <Edit className="mr-2 h-4 w-4" />
-                                    Edit
-                                </Button>
-                                <Button
-                                    variant="destructive"
-                                    size="sm"
-                                    onClick={() => {
-                                        setClassToDelete(classItem);
-                                        setDeleteDialogOpen(true);
-                                    }}
-                                >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Delete
-                                </Button>
-                                <Button variant="outline" size="sm" onClick={() => handleGenerateQR(classItem)}>
-                                    <QrCode className="mr-2 h-4 w-4" />
-                                    QR Code
-                                </Button>
-                                <Button variant="default" size="sm" onClick={() => handleViewDetails(classItem)}>
-                                    <Users className="mr-2 h-4 w-4" />
-                                    Students
-                                </Button>
-                            </>
-                        )}
-                        {auth.user.role === 'student' && (
-                            <Button variant="outline" size="sm" onClick={() => handleGenerateQR(classItem)} className="flex-1">
-                                <QrCode className="mr-2 h-4 w-4" />
-                                Join Class
+            <div className="group relative overflow-visible rounded-xl border border-gray-200/50 bg-white/80 p-0 shadow-sm backdrop-blur-sm transition-all duration-300 hover:border-blue-200 hover:shadow-lg hover:shadow-blue-100/50 dark:border-gray-800/50 dark:bg-gray-900/80 dark:hover:border-blue-800 dark:hover:shadow-blue-900/20">
+                {/* Header with gradient background */}
+                <div className="relative bg-gradient-to-br from-blue-50 to-indigo-100 p-6 dark:from-blue-950/50 dark:to-indigo-950/50">
+                    {/* Top actions */}
+                    <div className="absolute top-4 right-4 z-20">
+                        {auth.user.role === 'teacher' ? (
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-8 w-8 rounded-full bg-white/80 p-0 shadow-sm backdrop-blur-sm hover:bg-white hover:shadow-md dark:bg-gray-800/80 dark:hover:bg-gray-800"
+                                        onClick={(e) => {
+                                            console.log('Dropdown trigger clicked');
+                                            e.stopPropagation();
+                                        }}
+                                    >
+                                        <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="z-50 w-44 border bg-white shadow-lg">
+                                    <DropdownMenuItem
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            console.log('Manage Students clicked for:', classItem.name);
+                                            handleViewDetails(classItem);
+                                        }}
+                                        className="flex cursor-pointer items-center gap-2"
+                                    >
+                                        <Users className="h-4 w-4" />
+                                        <span>Manage Students</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            console.log('Edit Class clicked for:', classItem.name);
+                                            handleEdit(classItem);
+                                        }}
+                                        className="flex cursor-pointer items-center gap-2"
+                                    >
+                                        <Edit className="h-4 w-4" />
+                                        <span>Edit Class</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            console.log('Generate QR clicked for:', classItem.name);
+                                            handleGenerateQR(classItem);
+                                        }}
+                                        className="flex cursor-pointer items-center gap-2"
+                                    >
+                                        <QrCode className="h-4 w-4" />
+                                        <span>Generate QR</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                        onClick={(e) => {
+                                            e.preventDefault();
+                                            e.stopPropagation();
+                                            console.log('Delete Class clicked for:', classItem.name);
+                                            openDeleteDialog(classItem);
+                                        }}
+                                        className="flex cursor-pointer items-center gap-2 text-red-600 focus:text-red-600"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                        <span>Delete Class</span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        ) : (
+                            <Button onClick={() => handleGenerateQR(classItem)} size="sm" className="h-8 bg-blue-600 px-3 text-xs hover:bg-blue-700">
+                                <QrCode className="mr-1 h-3 w-3" />
+                                Join
                             </Button>
                         )}
                     </div>
+
+                    {/* Class title and subject */}
+                    <div className="pr-12">
+                        <div className="mb-2 flex items-center gap-2">
+                            <div className="rounded-lg bg-blue-500 p-2">
+                                <BookOpen className="h-5 w-5 text-white" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{classItem.name || classItem.subject.name}</h3>
+                                {classItem.subject.code && (
+                                    <Badge variant="secondary" className="mt-1 text-xs">
+                                        {classItem.subject.code}
+                                    </Badge>
+                                )}
+                            </div>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">{classItem.description || `${classItem.subject.name} course`}</p>
+                    </div>
                 </div>
+
+                {/* Content */}
+                <div className="p-6 pt-4">
+                    {/* Teacher info */}
+                    <div className="mb-4 flex items-center gap-3 rounded-lg bg-gray-50 p-3 dark:bg-gray-800/50">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50">
+                            <GraduationCap className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div>
+                            <div className="text-xs font-medium text-gray-500 dark:text-gray-400">Instructor</div>
+                            <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">{classItem.teacher?.name}</div>
+                        </div>
+                    </div>
+
+                    {/* Details grid */}
+                    <div className="space-y-3">
+                        <div className="flex items-center gap-3 text-sm">
+                            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-green-100 dark:bg-green-900/30">
+                                <Clock className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+                            </div>
+                            <div className="flex-1">
+                                <div className="text-xs font-medium text-gray-500 dark:text-gray-400">Schedule</div>
+                                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                                    {formatSchedules(classItem.class_schedules)}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 text-sm">
+                            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-orange-100 dark:bg-orange-900/30">
+                                <MapPin className="h-3.5 w-3.5 text-orange-600 dark:text-orange-400" />
+                            </div>
+                            <div className="flex-1">
+                                <div className="text-xs font-medium text-gray-500 dark:text-gray-400">Location</div>
+                                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{classItem.location.name}</div>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 text-sm">
+                            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-purple-100 dark:bg-purple-900/30">
+                                <Hash className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
+                            </div>
+                            <div className="flex-1">
+                                <div className="text-xs font-medium text-gray-500 dark:text-gray-400">Class Code</div>
+                                <div className="font-mono text-sm font-bold text-gray-900 dark:text-gray-100">{classItem.registration_code}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Footer with enrollment info */}
+                    <div className="mt-4 flex items-center justify-between rounded-lg border border-gray-200/50 bg-gray-50/50 p-3 dark:border-gray-700/50 dark:bg-gray-800/30">
+                        <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-gray-500" />
+                            <span className="text-xs text-gray-600 dark:text-gray-400">Max: {classItem.max_students} students</span>
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">
+                            {new Date(classItem.start_date).toLocaleDateString()} - {new Date(classItem.end_date).toLocaleDateString()}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Hover effect gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
             </div>
         );
     };
@@ -1191,15 +1268,60 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                     )}
                 </div>
 
-                {/* Stats Section */}
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    <div className="rounded-lg border bg-card p-6 dark:border-gray-800">
-                        <div className="flex items-center gap-2">
-                            <BookOpen className="h-5 w-5 text-blue-600 dark:text-blue-500" />
-                            <h3 className="text-lg font-medium">Total Classes</h3>
+                {/* Modern Stats Section */}
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="group relative overflow-hidden rounded-xl border border-blue-200/50 bg-gradient-to-br from-blue-50 to-blue-100/50 p-6 transition-all duration-300 hover:shadow-lg hover:shadow-blue-100/50 dark:border-blue-800/50 dark:from-blue-950/50 dark:to-blue-900/30 dark:hover:shadow-blue-900/20">
+                        <div className="relative z-10">
+                            <div className="flex items-center gap-3">
+                                <div className="rounded-xl bg-blue-500 p-3 shadow-lg">
+                                    <BookOpen className="h-6 w-6 text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-medium text-blue-600 dark:text-blue-400">Total Classes</h3>
+                                    <p className="text-3xl font-bold text-blue-900 dark:text-blue-100">{totalCount}</p>
+                                </div>
+                            </div>
                         </div>
-                        <p className="mt-2 text-3xl font-bold">{totalCount}</p>
+                        <div className="absolute -top-4 -right-4 h-24 w-24 rounded-full bg-blue-500/10" />
                     </div>
+
+                    {auth.user.role === 'teacher' && (
+                        <>
+                            <div className="group relative overflow-hidden rounded-xl border border-green-200/50 bg-gradient-to-br from-green-50 to-green-100/50 p-6 transition-all duration-300 hover:shadow-lg hover:shadow-green-100/50 dark:border-green-800/50 dark:from-green-950/50 dark:to-green-900/30 dark:hover:shadow-green-900/20">
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-3">
+                                        <div className="rounded-xl bg-green-500 p-3 shadow-lg">
+                                            <Users className="h-6 w-6 text-white" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-medium text-green-600 dark:text-green-400">Active Students</h3>
+                                            <p className="text-3xl font-bold text-green-900 dark:text-green-100">
+                                                {classes.reduce((sum, cls) => sum + (cls.max_students || 0), 0)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="absolute -top-4 -right-4 h-24 w-24 rounded-full bg-green-500/10" />
+                            </div>
+
+                            <div className="group relative overflow-hidden rounded-xl border border-purple-200/50 bg-gradient-to-br from-purple-50 to-purple-100/50 p-6 transition-all duration-300 hover:shadow-lg hover:shadow-purple-100/50 dark:border-purple-800/50 dark:from-purple-950/50 dark:to-purple-900/30 dark:hover:shadow-purple-900/20">
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-3">
+                                        <div className="rounded-xl bg-purple-500 p-3 shadow-lg">
+                                            <QrCode className="h-6 w-6 text-white" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-medium text-purple-600 dark:text-purple-400">QR Sessions</h3>
+                                            <p className="text-3xl font-bold text-purple-900 dark:text-purple-100">
+                                                {classes.filter((cls) => cls.class_schedules?.length > 0).length}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="absolute -top-4 -right-4 h-24 w-24 rounded-full bg-purple-500/10" />
+                            </div>
+                        </>
+                    )}
                 </div>
 
                 {/* Classes Grid */}
@@ -1344,11 +1466,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                     <h3 className="text-sm font-medium text-blue-900">Add New Student</h3>
                                 </div>
                                 <div className="flex gap-2">
-                                    <Select
-                                        onValueChange={setStudentToAdd}
-                                        value={studentToAdd || ''}
-                                        key={`select-${availableStudents.length}`}
-                                    >
+                                    <Select onValueChange={setStudentToAdd} value={studentToAdd || ''} key={`select-${availableStudents.length}`}>
                                         <SelectTrigger className="h-8 flex-1 bg-white text-sm">
                                             <SelectValue placeholder="Select a student to add" />
                                         </SelectTrigger>
