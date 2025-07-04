@@ -440,15 +440,12 @@ class ClassController extends Controller
                 return response()->json(['message' => 'Selected user is not a student.'], 422);
             }
 
-            // Check if student is already enrolled (using student_id column)
             if ($class->students()->where('users.id', $validated['user_id'])->exists()) {
                 return response()->json(['message' => 'Student is already enrolled in this class.'], 422);
             }
 
-            // Attach using the correct pivot table structure
-            $class->students()->attach($validated['user_id'], [], false);
+            $class->students()->attach($validated['user_id']);
 
-            // Get the newly added student
             $newStudent = User::find($validated['user_id']);
 
             return response()->json([
@@ -467,28 +464,52 @@ class ClassController extends Controller
         }
     }
 
-    // ...existing code...
-
     public function removeStudent(ClassModel $class, User $user)
     {
         try {
-            // Only allow removing students
             if ($user->role !== 'student') {
                 return response()->json(['message' => 'Selected user is not a student.'], 422);
             }
 
-            // Check if student is enrolled
             if (!$class->students()->where('users.id', $user->id)->exists()) {
                 return response()->json(['message' => 'Student is not enrolled in this class.'], 404);
             }
 
-            // Detach student from class
             $class->students()->detach($user->id);
 
             return response()->json(['message' => 'Student removed successfully.']);
         } catch (\Exception $e) {
             logger()->error('Failed to remove student from class ' . $class->id . ': ' . $e->getMessage());
             return response()->json(['message' => 'An unexpected error occurred.'], 500);
+        }
+    }
+
+    public function searchAvailableStudents(ClassModel $class, Request $request)
+    {
+        try {
+            $search = $request->get('search', '');
+
+            $enrolledStudentIds = $class->students()->pluck('users.id');
+
+            $query = User::where('role', 'student')
+                ->whereNotIn('id', $enrolledStudentIds)
+                ->orderBy('name');
+
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'LIKE', '%' . $search . '%')
+                        ->orWhere('email', 'LIKE', '%' . $search . '%');
+                });
+            }
+
+            $students = $query->limit(20)->get(['id', 'name', 'email']);
+
+            return response()->json([
+                'students' => $students
+            ], 200);
+        } catch (\Exception $e) {
+            Log::error('Failed to search available students for class ' . $class->id . ': ' . $e->getMessage());
+            return response()->json(['message' => 'Failed to search students.'], 500);
         }
     }
 }

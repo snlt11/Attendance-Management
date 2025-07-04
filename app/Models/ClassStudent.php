@@ -10,17 +10,12 @@ class ClassStudent extends Model
 {
     use HasUuids, HasFactory;
 
-    protected $fillable = ['class_id', 'student_id'];
+    protected $fillable = ['class_id', 'user_id'];
 
     public $incrementing = false;
 
     public function class()
     {
         return $this->belongsTo(ClassModel::class, 'class_id');
-    }
-
-    public function student()
-    {
-        return $this->belongsTo(User::class, 'student_id');
     }
 }

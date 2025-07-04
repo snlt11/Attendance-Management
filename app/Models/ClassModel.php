@@ -44,7 +44,7 @@ class ClassModel extends Model
 
     public function students()
     {
-        return $this->belongsToMany(User::class, 'class_students', 'class_id', 'student_id')->where('role', 'student');
+        return $this->belongsToMany(User::class, 'class_students', 'class_id', 'user_id')->where('role', 'student');
     }
 
     public function sessions()

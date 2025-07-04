@@ -10,12 +10,12 @@ return new class extends Migration
     {
         Schema::create('class_students', function (Blueprint $table) {
             $table->uuid('class_id')->index();
-            $table->uuid('student_id')->index();
+            $table->uuid('user_id')->index();
             $table->timestamps();
 
-            $table->primary(['class_id', 'student_id']);
+            $table->primary(['class_id', 'user_id']);
             $table->foreign('class_id')->references('id')->on('classes');
-            $table->foreign('student_id')->references('id')->on('users');
+            $table->foreign('user_id')->references('id')->on('users');
         });
     }
 
