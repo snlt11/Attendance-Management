@@ -372,7 +372,7 @@ class ClassController extends Controller
                 ->first();
 
             $token = Str::random(32);
-            $expiresAt = now()->addMinutes(5);
+            $expiresAt = now()->addMinutes(5)->setTimezone('Asia/Yangon');
 
             if ($session) {
                 $session->update([

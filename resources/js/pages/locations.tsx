@@ -966,11 +966,19 @@ export default function Locations({ locations: initialLocations }: LocationsPage
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <Label>Latitude</Label>
-                                            <Input value={formData.latitude} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                                            <Input
+                                                value={formData.latitude}
+                                                onChange={(e) => setFormData({ ...formData, latitude: e.target.value })}
+                                                className="bg-gray-50 dark:bg-gray-800"
+                                            />
                                         </div>
                                         <div className="space-y-2">
                                             <Label>Longitude</Label>
-                                            <Input value={formData.longitude} readOnly className="bg-gray-50 dark:bg-gray-800" />
+                                            <Input
+                                                value={formData.longitude}
+                                                onChange={(e) => setFormData({ ...formData, longitude: e.target.value })}
+                                                className="bg-gray-50 dark:bg-gray-800"
+                                            />
                                         </div>
                                     </div>
                                 )}

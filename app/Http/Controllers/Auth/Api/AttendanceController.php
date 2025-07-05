@@ -9,63 +9,172 @@ use App\Models\Attendance;
 use App\Models\ClassSession;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AttendanceController extends Controller
 {
     public function __invoke(Request $request)
     {
-        $user = Auth::user();
-        if (!$user) {
-            throw new MessageError('User not authenticated.');
+        try {
+            $user = Auth::user();
+            if (!$user) {
+                throw new MessageError('User not authenticated.');
+            }
+
+            if ($user->role !== 'student') {
+                throw new MessageError('Only students can scan QR codes for attendance.');
+            }
+
+            $qrToken = $request->input('qr_token');
+            if (!$qrToken || !is_string($qrToken) || strlen($qrToken) < 10) {
+                throw new MessageError('QR token is required and must be valid.');
+            }
+
+            // Find session with this QR token (do not filter by expiry yet)
+            $session = ClassSession::where('qr_token', $qrToken)
+                ->where('status', 'active')
+                ->with(['class.subject', 'class.teacher', 'class.location'])
+                ->first();
+
+            if (!$session) {
+                throw new MessageError('Invalid QR code. Please ask your teacher to generate a new one.');
+            }
+
+            // Check QR code expiry
+            if (!$session->expires_at || Carbon::now()->gt($session->expires_at)) {
+                throw new MessageError('This QR code has expired. Please ask your teacher to generate a new one.');
+            }
+
+            // Defensive: check for missing relationships
+            if (!$session->class || !$session->class->subject || !$session->class->teacher || !$session->class->location) {
+                throw new MessageError('Class session data is incomplete. Please contact your teacher or admin.');
+            }
+            $isEnrolled = DB::table('class_students')
+                ->where('class_id', $session->class_id)
+                ->where('user_id', $user->id)
+                ->exists();
+
+            if (!$isEnrolled) {
+                throw new MessageError('You are not enrolled in this class.');
+            }
+
+            // Check if already checked in for this session
+            $existingAttendance = Attendance::where('class_session_id', $session->id)
+                ->where('user_id', $user->id)
+                ->first();
+
+            if ($existingAttendance) {
+                return response()->json([
+                    'message' => 'You have already checked in for this class session.',
+                    'attendance' => $existingAttendance,
+                    'session' => [
+                        'class_name' => $session->class->name,
+                        'subject' => $session->class->subject->name,
+                        'teacher' => $session->class->teacher->name,
+                        'location' => $session->class->location->name,
+                        'session_date' => $session->session_date,
+                        'start_time' => $session->start_time,
+                        'end_time' => $session->end_time,
+                    ]
+                ], 200);
+            }
+
+            $now = $request->input('datetime') ? Carbon::parse($request->input('datetime'), 'Asia/Yangon') : Carbon::now('Asia/Yangon');
+
+            $classStartDate = Carbon::parse($session->class->start_date, 'Asia/Yangon');
+            $classEndDate = Carbon::parse($session->class->end_date, 'Asia/Yangon');
+
+            // Check if class session is before the class start date
+            if ($now->lt($classStartDate)) {
+                throw new MessageError('You cannot check in before the class start date: ' . $classStartDate->format('Y-m-d') . '.');
+            }
+
+            // Check if class session is in the future
+            if ($now->gt($classEndDate)) {
+                throw new MessageError('You cannot check in for a class that has already ended on ' . $classEndDate->format('Y-m-d') . '.');
+            }
+
+            // Check class schedule start and end time
+            $classStartTime = Carbon::parse($session->start_time, 'Asia/Yangon');
+            $classEndTime = Carbon::parse($session->end_time, 'Asia/Yangon');
+            if ($now->lt($classStartTime) || $now->gt($classEndTime)) {
+                throw new MessageError('You can only check in during the class schedule time: ' .
+                    $classStartTime->format('H:i') . ' - ' .
+                    $classEndTime->format('H:i') . '.');
+            }
+
+            // latitude and longitude
+            $latitude = $request->input('latitude');
+            $longitude = $request->input('longitude');
+
+            if ($latitude === null || $longitude === null) {
+                throw new MessageError('Your location is required to check in.');
+            }
+
+            if (empty($session->class->location->latitude) || empty($session->class->location->longitude)) {
+                throw new MessageError('This class does not have a location set. Please contact your teacher.');
+            }
+
+            if (!$this->checkLocation($latitude, $longitude, $session->class->location->latitude, $session->class->location->longitude)) {
+                throw new MessageError('You are not close enough to the class location to check in.');
+            }
+
+
+            // Create attendance record
+            $attendance = Attendance::create([
+                'user_id' => $user->id,
+                'class_session_id' => $session->id,
+                'status' => 'present',
+                'checked_in_at' => $now,
+            ]);
+
+            return response()->json([
+                'message' => 'Attendance marked successfully!',
+                'attendance' => $attendance,
+                'session' => [
+                    'class_name' => $session->class->name,
+                    'subject' => $session->class->subject->name,
+                    'teacher' => $session->class->teacher->name,
+                    'location' => $session->class->location->name,
+                    'session_date' => $session->session_date,
+                    'start_time' => $session->start_time,
+                    'end_time' => $session->end_time,
+                ]
+            ], 201);
+        } catch (MessageError $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+                'success' => false
+            ], 422);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'An unexpected error occurred. Please try again.',
+                'success' => false
+            ], 500);
+        }
+    }
+
+    private function checkLocation($userLat, $userLon, $locationLat, $locationLon)
+    {
+        if ($locationLat === null || $locationLon === null) {
+            return false;
         }
 
-        $classSessionId = $request->class_session_id;
-        if (!$classSessionId) {
-            throw new MessageError('class_session_id is required.');
-        }
+        $earthRadius = 6371000; // meters
 
-        $classSession = ClassSession::find($classSessionId);
-        if (!$classSession) {
-            throw new MessageError('Class session does not exist.');
-        }
+        $latFrom = deg2rad(floatval($userLat));
+        $lonFrom = deg2rad(floatval($userLon));
+        $latTo = deg2rad(floatval($locationLat));
+        $lonTo = deg2rad(floatval($locationLon));
 
-        if ($classSession->status !== 'active') {
-            throw new MessageError('Class session is not active.');
-        }
+        $latDelta = $latTo - $latFrom;
+        $lonDelta = $lonTo - $lonFrom;
 
-        if ($classSession->end_time && Carbon::now()->gt(Carbon::parse($classSession->end_time))) {
-            throw new MessageError('Class session has already ended.');
-        }
+        $angle = 2 * asin(sqrt(pow(sin($latDelta / 2), 2) +
+            cos($latFrom) * cos($latTo) * pow(sin($lonDelta / 2), 2)));
 
-        if ($classSession->start_time && Carbon::now()->lt(Carbon::parse($classSession->start_time))) {
-            throw new MessageError('Class session has not started yet.');
-        }
+        $distance = $angle * $earthRadius;
 
-        if ($classSession->start_time && Carbon::now()->diffInMinutes(Carbon::parse($classSession->start_time)) > 15) {
-            throw new MessageError('You can only check in attendance within 15 minutes of the class session start time.');
-        }
-
-        if ($user->role !== 'student') {
-            throw new MessageError('Only students can check in attendance.');
-        }
-
-        $attendance = Attendance::where('class_session_id', $classSession->id)
-            ->where('user_id', $user->id)
-            ->first();
-        if ($attendance) {
-            throw new MessageError('You have already checked in attendance for this class session.');
-        }
-
-        $attendance = Attendance::create([
-            'user_id' => $user->id,
-            'class_session_id' => $classSession->id,
-            'status' => 'present',
-            'checked_in_at' => Carbon::now(),
-        ]);
-
-        return response()->json([
-            'message' => 'Attendance checked in successfully.',
-            'attendance' => $attendance,
-        ], 201);
+        return $distance <= 100; // true if within 100 meters
     }
 }

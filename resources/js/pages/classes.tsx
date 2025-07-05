@@ -44,6 +44,8 @@ import {
 import { QRCodeCanvas } from 'qrcode.react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 import { toast, Toaster } from 'sonner';
 
 // Format function for the countdown timer
@@ -820,6 +822,15 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
         return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
     };
 
+    const handleScheduleChange = (index: number, field: keyof ClassSchedule, value: string) => {
+        const newSchedules = [...formData.schedules];
+        newSchedules[index] = {
+            ...newSchedules[index],
+            [field]: value,
+        };
+        setFormData({ ...formData, schedules: newSchedules });
+    };
+
     // Schedule management functions
     const addSchedule = () => {
         setFormData((prev) => ({
@@ -1250,49 +1261,36 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                         </div>
 
                                         {/* Date Range */}
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-2">
+                                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                            <div>
                                                 <Label htmlFor="start_date">Start Date</Label>
-                                                <Input
-                                                    id="start_date"
-                                                    type="date"
-                                                    value={formData.start_date}
-                                                    onChange={(e) => {
-                                                        setFormData((prev) => ({ ...prev, start_date: e.target.value }));
-                                                        setErrors((prev) => {
-                                                            const newErrors = { ...prev };
-                                                            delete newErrors.start_date;
-                                                            return newErrors;
-                                                        });
-                                                    }}
-                                                />
-                                                {errors.start_date?.map((error, index) => (
-                                                    <p key={index} className="text-sm text-red-600">
-                                                        {error}
-                                                    </p>
-                                                ))}
+                                                <div className="relative z-50">
+                                                    <DatePicker
+                                                        selected={formData.start_date ? new Date(formData.start_date) : null}
+                                                        onChange={(date: Date | null) =>
+                                                            setFormData({ ...formData, start_date: date ? date.toISOString().split('T')[0] : '' })
+                                                        }
+                                                        dateFormat="yyyy-MM-dd"
+                                                        className="w-full"
+                                                        customInput={<Input />}
+                                                        popperPlacement="bottom-start"
+                                                    />
+                                                </div>
                                             </div>
-
-                                            <div className="space-y-2">
+                                            <div>
                                                 <Label htmlFor="end_date">End Date</Label>
-                                                <Input
-                                                    id="end_date"
-                                                    type="date"
-                                                    value={formData.end_date}
-                                                    onChange={(e) => {
-                                                        setFormData((prev) => ({ ...prev, end_date: e.target.value }));
-                                                        setErrors((prev) => {
-                                                            const newErrors = { ...prev };
-                                                            delete newErrors.end_date;
-                                                            return newErrors;
-                                                        });
-                                                    }}
-                                                />
-                                                {errors.end_date?.map((error, index) => (
-                                                    <p key={index} className="text-sm text-red-600">
-                                                        {error}
-                                                    </p>
-                                                ))}
+                                                <div className="relative z-50">
+                                                    <DatePicker
+                                                        selected={formData.end_date ? new Date(formData.end_date) : null}
+                                                        onChange={(date: Date | null) =>
+                                                            setFormData({ ...formData, end_date: date ? date.toISOString().split('T')[0] : '' })
+                                                        }
+                                                        dateFormat="yyyy-MM-dd"
+                                                        className="w-full"
+                                                        customInput={<Input />}
+                                                        popperPlacement="bottom-start"
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
 
@@ -1338,7 +1336,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                                         )}
                                                     </div>
 
-                                                    <div className="grid grid-cols-3 gap-4">
+                                                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                                                         <div className="space-y-2">
                                                             <Label>Day of Week</Label>
                                                             <Select
@@ -1366,12 +1364,34 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                                         </div>
 
                                                         <div className="space-y-2">
-                                                            <Label>Start Time</Label>
-                                                            <Input
-                                                                type="time"
-                                                                value={schedule.start_time}
-                                                                onChange={(e) => updateSchedule(index, 'start_time', e.target.value)}
-                                                            />
+                                                            <Label htmlFor={`start_time_${index}`}>Start Time</Label>
+                                                            <div className="relative z-40">
+                                                                <DatePicker
+                                                                    selected={
+                                                                        schedule.start_time ? new Date(`1970-01-01T${schedule.start_time}`) : null
+                                                                    }
+                                                                    onChange={(date: Date | null) =>
+                                                                        handleScheduleChange(
+                                                                            index,
+                                                                            'start_time',
+                                                                            date
+                                                                                ? date.toLocaleTimeString('en-GB', {
+                                                                                      hour: '2-digit',
+                                                                                      minute: '2-digit',
+                                                                                  })
+                                                                                : '',
+                                                                        )
+                                                                    }
+                                                                    showTimeSelect
+                                                                    showTimeSelectOnly
+                                                                    timeIntervals={15}
+                                                                    timeCaption="Time"
+                                                                    dateFormat="h:mm aa"
+                                                                    className="w-full"
+                                                                    customInput={<Input />}
+                                                                    popperPlacement="bottom-start"
+                                                                />
+                                                            </div>
                                                             {errors[`schedules.${index}.start_time`]?.map((error, i) => (
                                                                 <p key={i} className="text-sm text-red-600">
                                                                     {error}
@@ -1380,12 +1400,32 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                                         </div>
 
                                                         <div className="space-y-2">
-                                                            <Label>End Time</Label>
-                                                            <Input
-                                                                type="time"
-                                                                value={schedule.end_time}
-                                                                onChange={(e) => updateSchedule(index, 'end_time', e.target.value)}
-                                                            />
+                                                            <Label htmlFor={`end_time_${index}`}>End Time</Label>
+                                                            <div className="relative z-40">
+                                                                <DatePicker
+                                                                    selected={schedule.end_time ? new Date(`1970-01-01T${schedule.end_time}`) : null}
+                                                                    onChange={(date: Date | null) =>
+                                                                        handleScheduleChange(
+                                                                            index,
+                                                                            'end_time',
+                                                                            date
+                                                                                ? date.toLocaleTimeString('en-GB', {
+                                                                                      hour: '2-digit',
+                                                                                      minute: '2-digit',
+                                                                                  })
+                                                                                : '',
+                                                                        )
+                                                                    }
+                                                                    showTimeSelect
+                                                                    showTimeSelectOnly
+                                                                    timeIntervals={15}
+                                                                    timeCaption="Time"
+                                                                    dateFormat="h:mm aa"
+                                                                    className="w-full"
+                                                                    customInput={<Input />}
+                                                                    popperPlacement="bottom-start"
+                                                                />
+                                                            </div>
                                                             {errors[`schedules.${index}.end_time`]?.map((error, i) => (
                                                                 <p key={i} className="text-sm text-red-600">
                                                                     {error}
@@ -1777,4 +1817,9 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
             </AlertDialog>
         </AppLayout>
     );
+}
+
+// Add a portal container to the body
+if (typeof document !== 'undefined' && document.getElementById('root-portal')) {
+    document.getElementById('root-portal')?.remove();
 }
