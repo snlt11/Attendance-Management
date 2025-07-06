@@ -7,6 +7,7 @@ use App\Models\ClassModel;
 use App\Models\Location;
 use App\Models\Subject;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
@@ -135,5 +136,109 @@ class DatabaseSeeder extends Seeder
             }
             $i++;
         }
+
+        // Create sample class sessions and attendance for dashboard testing
+        $this->createSampleSessionsAndAttendance();
+    }
+
+    /**
+     * Create sample class sessions and attendance data for dashboard testing
+     */
+    private function createSampleSessionsAndAttendance()
+    {
+        $faker = \Faker\Factory::create('en_US');
+        $today = \Carbon\Carbon::today();
+        $yesterday = $today->copy()->subDay();
+
+        // Get classes with students
+        $classes = ClassModel::with(['students'])->take(10)->get();
+
+        foreach ($classes as $class) {
+            $students = $class->students;
+
+            // Create sessions for today with various times and statuses
+            $todaySessions = [
+                ['start' => '08:00:00', 'end' => '09:30:00', 'status' => 'completed'],
+                ['start' => '10:00:00', 'end' => '11:30:00', 'status' => 'active'],
+                ['start' => '14:00:00', 'end' => '15:30:00', 'status' => 'scheduled'],
+                ['start' => '16:00:00', 'end' => '17:30:00', 'status' => 'scheduled'],
+            ];
+
+            // Create yesterday's sessions (all completed)
+            $yesterdaySessions = [
+                ['start' => '09:00:00', 'end' => '10:30:00', 'status' => 'completed'],
+                ['start' => '13:00:00', 'end' => '14:30:00', 'status' => 'completed'],
+            ];
+
+            // Create today's sessions
+            foreach ($todaySessions as $index => $sessionData) {
+                if ($index >= 2) break; // Limit to 2 sessions per class for today
+
+                $session = \App\Models\ClassSession::create([
+                    'class_id' => $class->id,
+                    'session_date' => $today,
+                    'start_time' => $sessionData['start'],
+                    'end_time' => $sessionData['end'],
+                    'status' => $sessionData['status'],
+                    'qr_token' => Str::random(10),
+                    'expires_at' => $today->copy()->addHours(rand(2, 4))
+                ]);
+
+                // Create attendance records for completed and active sessions
+                if (in_array($sessionData['status'], ['completed', 'active'])) {
+                    $maxAttendance = min(15, $students->count());
+                    if ($maxAttendance > 0) {
+                        $attendanceCount = rand(1, $maxAttendance);
+                        $selectedStudents = $students->random($attendanceCount);
+
+                        foreach ($selectedStudents as $student) {
+                            \App\Models\Attendance::create([
+                                'class_session_id' => $session->id,
+                                'user_id' => $student->id,
+                                'checked_in_at' => $today->copy()
+                                    ->setTimeFromTimeString($sessionData['start'])
+                                    ->addMinutes(rand(0, 30)),
+                                'status' => rand(0, 10) > 1 ? 'present' : 'absent' // 90% present rate
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            // Create yesterday's sessions
+            foreach ($yesterdaySessions as $index => $sessionData) {
+                if ($index >= 1) break; // Limit to 1 session per class for yesterday
+
+                $session = \App\Models\ClassSession::create([
+                    'class_id' => $class->id,
+                    'session_date' => $yesterday,
+                    'start_time' => $sessionData['start'],
+                    'end_time' => $sessionData['end'],
+                    'status' => $sessionData['status'],
+                    'qr_token' => Str::random(10),
+                    'expires_at' => $yesterday->copy()->addHours(2)
+                ]);
+
+                // Create attendance records
+                $maxAttendance = min(15, $students->count());
+                if ($maxAttendance > 0) {
+                    $attendanceCount = rand(1, $maxAttendance);
+                    $selectedStudents = $students->random($attendanceCount);
+
+                    foreach ($selectedStudents as $student) {
+                        \App\Models\Attendance::create([
+                            'class_session_id' => $session->id,
+                            'user_id' => $student->id,
+                            'checked_in_at' => $yesterday->copy()
+                                ->setTimeFromTimeString($sessionData['start'])
+                                ->addMinutes(rand(0, 20)),
+                            'status' => rand(0, 10) > 2 ? 'present' : 'absent' // 80% present rate
+                        ]);
+                    }
+                }
+            }
+        }
+
+        echo "Sample class sessions and attendance data created for dashboard testing\n";
     }
 }

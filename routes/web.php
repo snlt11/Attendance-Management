@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ClassController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\UserController;
@@ -12,9 +13,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', function () {
-        return Inertia::render('dashboard');
-    })->name('dashboard');
+    Route::get('dashboard', DashboardController::class)->name('dashboard');
 
     // User management routes
     Route::get('users', [UserController::class, 'index'])->name('users.index');
@@ -29,7 +28,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('classes/{class}', [ClassController::class, 'destroy'])->name('classes.destroy');
     Route::post('classes/{class}/generate-qr', [ClassController::class, 'generateQR'])->name('classes.generate-qr');
     Route::post('classes/{class}/generate-class-code', [ClassController::class, 'generateClassCode'])->name('classes.generate-class-code.store');
-    
+
     // Add these class student management routes
     Route::prefix('classes/{class}')->group(function () {
         Route::get('students', [ClassController::class, 'getStudents'])->name('classes.students.index');
