@@ -15,6 +15,11 @@ return new class extends Migration
             $table->string('description')->nullable();
             $table->timestamps();
         });
+
+        // Add foreign key constraint to classes table now that subjects exists
+        Schema::table('classes', function (Blueprint $table) {
+            $table->foreign('subject_id')->references('id')->on('subjects');
+        });
     }
 
     /**
@@ -22,6 +27,11 @@ return new class extends Migration
      */
     public function down(): void
     {
+        // Drop foreign key constraint from classes table first
+        Schema::table('classes', function (Blueprint $table) {
+            $table->dropForeign(['subject_id']);
+        });
+
         Schema::dropIfExists('subjects');
     }
 };

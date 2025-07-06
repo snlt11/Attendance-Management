@@ -18,10 +18,19 @@ return new class extends Migration
 
             $table->foreign('class_id')->references('id')->on('classes')->onDelete('cascade');
         });
+
+        // Add the foreign key constraint to class_sessions table now that class_schedules exists
+        Schema::table('class_sessions', function (Blueprint $table) {
+            $table->foreign('class_schedule_id')->references('id')->on('class_schedules')->onDelete('set null');
+        });
     }
 
     public function down(): void
     {
+        Schema::table('class_sessions', function (Blueprint $table) {
+            $table->dropForeign(['class_schedule_id']);
+        });
+
         Schema::dropIfExists('class_schedules');
     }
 };
