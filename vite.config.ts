@@ -22,4 +22,14 @@ export default defineConfig({
             'ziggy-js': resolve(__dirname, 'vendor/tightenco/ziggy'),
         },
     },
+    server: {
+        host: process.env.VITE_DEV_SERVER_HOST || 'localhost',
+        port: parseInt(process.env.VITE_DEV_SERVER_PORT || '5173'),
+        hmr: {
+            host: 'localhost',
+        },
+        watch: {
+            usePolling: true,
+        },
+    },
 });
