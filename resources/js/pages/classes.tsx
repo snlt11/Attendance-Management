@@ -168,11 +168,17 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: { currentPage: nu
 
     return (
         <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-700">
+            <div className="text-sm text-gray-700 dark:text-gray-300">
                 Showing page {currentPage} of {totalPages}
             </div>
             <div className="flex items-center space-x-1">
-                <Button variant="outline" size="sm" onClick={() => onPageChange(currentPage - 1)} disabled={currentPage === 1} className="px-3 py-2">
+                <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onPageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-3 py-2 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                >
                     <ChevronLeft className="mr-1 h-4 w-4" />
                     Previous
                 </Button>
@@ -180,7 +186,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: { currentPage: nu
                 {pageNumbers.map((page, index) => {
                     if (page === '...') {
                         return (
-                            <span key={`ellipsis-${index}`} className="px-3 py-2 text-gray-500">
+                            <span key={`ellipsis-${index}`} className="px-3 py-2 text-gray-500 dark:text-gray-400">
                                 ...
                             </span>
                         );
@@ -194,7 +200,9 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: { currentPage: nu
                             size="sm"
                             onClick={() => onPageChange(pageNum)}
                             className={`min-w-[2.5rem] px-3 py-2 ${
-                                pageNum === currentPage ? 'bg-primary text-primary-foreground' : 'hover:bg-gray-50'
+                                pageNum === currentPage
+                                    ? 'bg-primary text-primary-foreground dark:bg-blue-600 dark:text-white'
+                                    : 'hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700'
                             }`}
                         >
                             {pageNum}
@@ -207,7 +215,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: { currentPage: nu
                     size="sm"
                     onClick={() => onPageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="px-3 py-2"
+                    className="px-3 py-2 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                 >
                     Next
                     <ChevronRight className="ml-1 h-4 w-4" />
@@ -809,15 +817,17 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                 prevClasses.map((cls) => (cls.id === classItem.id ? { ...cls, registration_code: data.registration_code } : cls)),
             );
 
-            // Show success message with the new code
-            toast.success(`New class code generated: ${data.registration_code}`, {
-                duration: 6000,
-            });
-
             // Additional info toast
             toast.info('New class code is valid for 30 days', {
-                duration: 4000,
+                duration: 5000,
             });
+
+            // Show success message with the new code
+            toast.success(`New class code generated: ${data.registration_code}`, {
+                duration: 1500,
+            });
+
+            
         } catch (error) {
             console.error('Failed to generate class code:', error);
             toast.error(error instanceof Error ? error.message : 'Failed to generate new class code');
@@ -960,7 +970,10 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                         <MoreVertical className="h-4 w-4" />
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="z-50 w-44 border bg-white shadow-lg">
+                                <DropdownMenuContent
+                                    align="end"
+                                    className="z-50 w-44 border bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800"
+                                >
                                     <DropdownMenuItem
                                         onClick={(e) => {
                                             e.preventDefault();
@@ -1017,7 +1030,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                             console.log('Delete Class clicked for:', classItem.name);
                                             openDeleteDialog(classItem);
                                         }}
-                                        className="flex cursor-pointer items-center gap-2 text-red-600 focus:text-red-600"
+                                        className="flex cursor-pointer items-center gap-2 text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400"
                                     >
                                         <Trash2 className="h-4 w-4" />
                                         <span>Delete Class</span>
@@ -1025,7 +1038,11 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                 </DropdownMenuContent>
                             </DropdownMenu>
                         ) : (
-                            <Button onClick={() => handleGenerateQR(classItem)} size="sm" className="h-8 bg-blue-600 px-3 text-xs hover:bg-blue-700">
+                            <Button
+                                onClick={() => handleGenerateQR(classItem)}
+                                size="sm"
+                                className="h-8 bg-blue-600 px-3 text-xs hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                            >
                                 <QrCode className="mr-1 h-3 w-3" />
                                 Join
                             </Button>
@@ -1035,7 +1052,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                     {/* Class title and subject */}
                     <div className="pr-12">
                         <div className="mb-2 flex items-center gap-2">
-                            <div className="rounded-lg bg-blue-500 p-2">
+                            <div className="rounded-lg bg-blue-500 p-2 dark:bg-blue-600">
                                 <BookOpen className="h-5 w-5 text-white" />
                             </div>
                             <div>
@@ -1120,17 +1137,17 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Classes" />
-            <div className="flex h-full flex-1 flex-col gap-4 p-4">
+            <div className="flex h-full flex-1 flex-col gap-4 p-4 dark:bg-gray-900/50">
                 {/* Header with Search and Create */}
                 <div className="flex items-center justify-between">
                     <div className="relative max-w-sm flex-1">
-                        <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground dark:text-gray-400" />
                         <Input
                             type="search"
                             placeholder="Search classes..."
                             defaultValue={searchTerm}
                             onChange={(e) => handleSearch(e.target.value)}
-                            className="pl-10"
+                            className="pl-10 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400"
                         />
                     </div>
 
@@ -1148,10 +1165,10 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                     Create New Class
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+                            <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto dark:border-gray-700 dark:bg-gray-800">
                                 <DialogHeader>
-                                    <DialogTitle>{isEditing ? 'Edit Class' : 'Create New Class'}</DialogTitle>
-                                    <DialogDescription>
+                                    <DialogTitle className="dark:text-white">{isEditing ? 'Edit Class' : 'Create New Class'}</DialogTitle>
+                                    <DialogDescription className="dark:text-gray-300">
                                         {isEditing
                                             ? 'Update the class details below.'
                                             : 'Fill in the details below to create a new class. All fields are required.'}
@@ -1176,7 +1193,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                                 placeholder="Enter class name"
                                             />
                                             {errors.name?.map((error, index) => (
-                                                <p key={index} className="text-sm text-red-600">
+                                                <p key={index} className="text-sm text-red-600 dark:text-red-400">
                                                     {error}
                                                 </p>
                                             ))}
@@ -1335,7 +1352,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                                 placeholder="Enter maximum students"
                                             />
                                             {errors.max_students?.map((error, index) => (
-                                                <p key={index} className="text-sm text-red-600">
+                                                <p key={index} className="text-sm text-red-600 dark:text-red-400">
                                                     {error}
                                                 </p>
                                             ))}
@@ -1383,7 +1400,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                                                 </SelectContent>
                                                             </Select>
                                                             {errors[`schedules.${index}.day_of_week`]?.map((error, i) => (
-                                                                <p key={i} className="text-sm text-red-600">
+                                                                <p key={i} className="text-sm text-red-600 dark:text-red-400">
                                                                     {error}
                                                                 </p>
                                                             ))}
@@ -1416,7 +1433,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                                                 />
                                                             </div>
                                                             {errors[`schedules.${index}.start_time`]?.map((error, i) => (
-                                                                <p key={i} className="text-sm text-red-600">
+                                                                <p key={i} className="text-sm text-red-600 dark:text-red-400">
                                                                     {error}
                                                                 </p>
                                                             ))}
@@ -1447,7 +1464,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                                                 />
                                                             </div>
                                                             {errors[`schedules.${index}.end_time`]?.map((error, i) => (
-                                                                <p key={i} className="text-sm text-red-600">
+                                                                <p key={i} className="text-sm text-red-600 dark:text-red-400">
                                                                     {error}
                                                                 </p>
                                                             ))}
@@ -1457,7 +1474,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                             ))}
 
                                             {errors.schedules?.map((error, index) => (
-                                                <p key={index} className="text-sm text-red-600">
+                                                <p key={index} className="text-sm text-red-600 dark:text-red-400">
                                                     {error}
                                                 </p>
                                             ))}
@@ -1548,16 +1565,16 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                     {isLoading ? (
                         <div className="col-span-full flex min-h-[400px] items-center justify-center">
                             <div className="text-center">
-                                <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
-                                <p className="mt-2 text-sm text-muted-foreground">Loading classes...</p>
+                                <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground dark:text-gray-400" />
+                                <p className="mt-2 text-sm text-muted-foreground dark:text-gray-400">Loading classes...</p>
                             </div>
                         </div>
                     ) : classes.length === 0 ? (
                         <div className="col-span-full flex min-h-[400px] items-center justify-center">
                             <div className="text-center">
-                                <BookOpen className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-                                <p className="text-lg font-medium">No classes found</p>
-                                <p className="mt-1 text-sm text-muted-foreground">Get started by creating a new class.</p>
+                                <BookOpen className="mx-auto mb-4 h-12 w-12 text-muted-foreground dark:text-gray-400" />
+                                <p className="text-lg font-medium dark:text-gray-200">No classes found</p>
+                                <p className="mt-1 text-sm text-muted-foreground dark:text-gray-400">Get started by creating a new class.</p>
                             </div>
                         </div>
                     ) : (
@@ -1581,10 +1598,10 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                         }
                     }}
                 >
-                    <DialogContent className="max-w-lg">
+                    <DialogContent className="max-w-lg dark:border-gray-700 dark:bg-gray-800">
                         <DialogHeader>
-                            <DialogTitle>Class QR Code</DialogTitle>
-                            <DialogDescription className="text-sm text-muted-foreground">
+                            <DialogTitle className="dark:text-white">Class QR Code</DialogTitle>
+                            <DialogDescription className="text-sm text-muted-foreground dark:text-gray-400">
                                 Students can scan this QR code to mark their attendance.
                             </DialogDescription>
                         </DialogHeader>
@@ -1595,9 +1612,9 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                         <QRCodeCanvas value={qrData} size={400} level="M" includeMargin={true} />
                                     </div>
                                     <div className="mt-4 text-center">
-                                        <p className="text-lg font-medium text-gray-900">Time Remaining</p>
-                                        <p className="mt-1 text-3xl font-bold text-primary">{remainingTime || '--:--'}</p>
-                                        <p className="mt-2 text-sm text-gray-500">
+                                        <p className="text-lg font-medium text-gray-900 dark:text-gray-200">Time Remaining</p>
+                                        <p className="mt-1 text-3xl font-bold text-primary dark:text-blue-400">{remainingTime || '--:--'}</p>
+                                        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                                             {remainingTime === 'Expired' ? 'Generating new QR code...' : 'Will automatically regenerate when expired'}
                                         </p>
                                     </div>
@@ -1610,10 +1627,10 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
             <Toaster position="top-right" richColors closeButton />
 
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent>
+                <AlertDialogContent className="dark:border-gray-700 dark:bg-gray-800">
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Class</AlertDialogTitle>
-                        <AlertDialogDescription>
+                        <AlertDialogTitle className="dark:text-white">Delete Class</AlertDialogTitle>
+                        <AlertDialogDescription className="dark:text-gray-300">
                             Are you sure you want to delete <b>{classToDelete?.subject.name}</b> class? This will also delete all attendance records
                             and QR sessions. This action cannot be undone.
                         </AlertDialogDescription>
@@ -1641,39 +1658,39 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                     }
                 }}
             >
-                <DialogContent className="flex h-[85vh] max-h-[85vh] w-full flex-col sm:max-w-4xl">
-                    <DialogHeader className="flex-shrink-0 border-b pb-4">
-                        <DialogTitle className="flex items-center gap-2 text-xl font-semibold">
-                            <BookOpen className="h-5 w-5 text-blue-600" />
+                <DialogContent className="flex h-[85vh] max-h-[85vh] w-full flex-col sm:max-w-4xl dark:border-gray-700 dark:bg-gray-800">
+                    <DialogHeader className="flex-shrink-0 border-b pb-4 dark:border-gray-600">
+                        <DialogTitle className="flex items-center gap-2 text-xl font-semibold dark:text-white">
+                            <BookOpen className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                             {detailsClass?.name}
                         </DialogTitle>
-                        <DialogDescription className="text-gray-600">Manage students enrolled in this class</DialogDescription>
+                        <DialogDescription className="text-gray-600 dark:text-gray-300">Manage students enrolled in this class</DialogDescription>
                     </DialogHeader>
 
                     {isFetchingStudents ? (
                         <div className="flex flex-1 items-center justify-center">
                             <div className="text-center">
-                                <Loader2 className="mx-auto mb-2 h-8 w-8 animate-spin text-blue-600" />
-                                <p className="text-sm text-gray-500">Loading class details...</p>
+                                <Loader2 className="mx-auto mb-2 h-8 w-8 animate-spin text-blue-600 dark:text-blue-400" />
+                                <p className="text-sm text-gray-500 dark:text-gray-400">Loading class details...</p>
                             </div>
                         </div>
                     ) : (
                         <div className="flex-1 overflow-hidden">
                             <div className="h-full space-y-4 overflow-y-auto p-4">
                                 {/* Class Info */}
-                                <div className="flex-shrink-0 rounded-lg bg-gray-50 p-4">
+                                <div className="flex-shrink-0 rounded-lg bg-gray-50 p-4 dark:bg-gray-800/50">
                                     <div className="grid grid-cols-2 gap-4 text-sm md:grid-cols-4">
                                         <div>
-                                            <span className="text-xs font-medium text-gray-500">Subject</span>
-                                            <p className="text-sm font-medium text-gray-900">{detailsClass?.subject.name}</p>
+                                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Subject</span>
+                                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{detailsClass?.subject.name}</p>
                                         </div>
                                         <div>
-                                            <span className="text-xs font-medium text-gray-500">Teacher</span>
-                                            <p className="text-sm font-medium text-gray-900">{detailsClass?.teacher.name}</p>
+                                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Teacher</span>
+                                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{detailsClass?.teacher.name}</p>
                                         </div>
                                         <div>
-                                            <span className="text-xs font-medium text-gray-500">Location</span>
-                                            <p className="text-sm font-medium text-gray-900">{detailsClass?.location.name}</p>
+                                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">Location</span>
+                                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{detailsClass?.location.name}</p>
                                         </div>
                                         <div>
                                             <span className="text-xs font-medium text-gray-500">Max Students</span>
@@ -1690,27 +1707,31 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                 </div>
 
                                 {/* Add Student Section */}
-                                <div className="flex-shrink-0 rounded-lg border border-blue-200 bg-blue-50 p-4">
+                                <div className="flex-shrink-0 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950/30">
                                     <div className="mb-3 flex items-center gap-2">
-                                        <UserPlus className="h-4 w-4 text-blue-600" />
-                                        <h3 className="text-sm font-medium text-blue-900">Add New Student</h3>
+                                        <UserPlus className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                        <h3 className="text-sm font-medium text-blue-900 dark:text-blue-200">Add New Student</h3>
                                     </div>
                                     <div className="flex gap-3">
                                         <Select onValueChange={setStudentToAdd} value={studentToAdd || ''} key={`select-${availableStudents.length}`}>
-                                            <SelectTrigger className="h-9 flex-1 bg-white text-sm">
+                                            <SelectTrigger className="h-9 flex-1 bg-white text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
                                                 <SelectValue placeholder="Select a student to add" />
                                             </SelectTrigger>
-                                            <SelectContent className="max-h-[300px] overflow-y-auto">
+                                            <SelectContent className="max-h-[300px] overflow-y-auto dark:border-gray-700 dark:bg-gray-800">
                                                 {availableStudents.length === 0 ? (
-                                                    <div className="p-3 text-center text-sm text-gray-500">
+                                                    <div className="p-3 text-center text-sm text-gray-500 dark:text-gray-400">
                                                         {isFetchingStudents ? 'Loading...' : 'All students are enrolled'}
                                                     </div>
                                                 ) : (
                                                     availableStudents.map((student) => (
-                                                        <SelectItem key={student.id} value={student.id}>
+                                                        <SelectItem
+                                                            key={student.id}
+                                                            value={student.id}
+                                                            className="dark:text-white dark:focus:bg-gray-700"
+                                                        >
                                                             <div className="flex flex-col">
                                                                 <span className="text-sm font-medium">{student.name}</span>
-                                                                <span className="text-xs text-gray-500">{student.email}</span>
+                                                                <span className="text-xs text-gray-500 dark:text-gray-400">{student.email}</span>
                                                             </div>
                                                         </SelectItem>
                                                     ))
@@ -1720,7 +1741,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                         <Button
                                             onClick={handleAddStudent}
                                             disabled={!studentToAdd || isAddingStudent}
-                                            className="h-9 bg-blue-600 px-4 text-sm hover:bg-blue-700"
+                                            className="h-9 bg-blue-600 px-4 text-sm hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
                                         >
                                             {isAddingStudent ? (
                                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -1737,14 +1758,14 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                 {/* Students List */}
                                 <div className="flex min-h-[300px] flex-1 flex-col">
                                     <div className="mb-3 flex flex-shrink-0 items-center justify-between">
-                                        <h3 className="flex items-center gap-2 text-sm font-medium text-gray-900">
-                                            <Users className="h-4 w-4 text-gray-600" />
+                                        <h3 className="flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-gray-200">
+                                            <Users className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                                             Enrolled Students ({classStudents.length})
                                         </h3>
                                     </div>
 
                                     <div
-                                        className="h-[350px] overflow-y-auto rounded-lg border-2 border-gray-200 p-4"
+                                        className="h-[350px] overflow-y-auto rounded-lg border-2 border-gray-200 p-4 dark:border-gray-600 dark:bg-gray-800/50"
                                         style={{
                                             transform: 'translateZ(0)',
                                             willChange: 'scroll-position',
@@ -1764,7 +1785,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                                 {classStudents.map((student) => (
                                                     <div
                                                         key={student.id}
-                                                        className="group relative flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3 transition-all hover:bg-blue-100"
+                                                        className="group relative flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3 transition-all hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-950/30 dark:hover:bg-blue-900/40"
                                                         style={{
                                                             transform: 'translateZ(0)',
                                                             contain: 'layout style paint',
@@ -1787,13 +1808,15 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                                                 contain: 'layout style',
                                                             }}
                                                         >
-                                                            <p className="truncate text-sm font-medium text-gray-900">{student.name}</p>
-                                                            <p className="truncate text-xs text-gray-600">{student.email}</p>
+                                                            <p className="truncate text-sm font-medium text-gray-900 dark:text-gray-200">
+                                                                {student.name}
+                                                            </p>
+                                                            <p className="truncate text-xs text-gray-600 dark:text-gray-400">{student.email}</p>
                                                         </div>
                                                         {auth.user.role === 'teacher' && (
                                                             <button
                                                                 onClick={() => openRemoveStudentDialog(student)}
-                                                                className="flex-shrink-0 rounded-full p-1 text-gray-400 opacity-0 transition-all group-hover:opacity-100 hover:bg-red-100 hover:text-red-600"
+                                                                className="flex-shrink-0 rounded-full p-1 text-gray-400 opacity-0 transition-all group-hover:opacity-100 hover:bg-red-100 hover:text-red-600 dark:text-gray-500 dark:hover:bg-red-900/50 dark:hover:text-red-400"
                                                                 title="Remove student"
                                                             >
                                                                 <X className="h-3 w-3" />
@@ -1804,8 +1827,8 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                             </div>
                                         ) : (
                                             <div className="flex h-full min-h-[200px] flex-col items-center justify-center text-center">
-                                                <Users className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-                                                <h3 className="mb-2 text-lg font-medium text-gray-900">No students enrolled</h3>
+                                                <Users className="mx-auto mb-4 h-12 w-12 text-gray-400 dark:text-gray-500" />
+                                                <h3 className="mb-2 text-lg font-medium text-gray-900 dark:text-gray-200">No students enrolled</h3>
                                                 <p className="text-gray-500">Add students to this class to get started.</p>
                                             </div>
                                         )}
@@ -1818,12 +1841,12 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
             </Dialog>
 
             <AlertDialog open={isRemoveStudentDialogOpen} onOpenChange={setIsRemoveStudentDialogOpen}>
-                <AlertDialogContent>
+                <AlertDialogContent className="dark:border-gray-700 dark:bg-gray-800">
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This will remove <span className="font-semibold text-gray-900">{studentToRemove?.name}</span> from the class. This action
-                            cannot be undone.
+                        <AlertDialogTitle className="dark:text-white">Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription className="dark:text-gray-300">
+                            This will remove <span className="font-semibold text-gray-900 dark:text-gray-200">{studentToRemove?.name}</span> from the
+                            class. This action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
