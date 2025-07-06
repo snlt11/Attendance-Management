@@ -56,6 +56,27 @@ const formatRemainingTime = (timeInSeconds: number) => {
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 };
 
+// Format time to HH:MM format (24-hour)
+const formatTimeForBackend = (timeString: string): string => {
+    if (!timeString) return '';
+
+    // If it's already in HH:MM format, return as is
+    if (/^\d{2}:\d{2}$/.test(timeString)) {
+        return timeString;
+    }
+
+    // Try to parse and format the time
+    try {
+        const date = new Date(`1970-01-01T${timeString}`);
+        if (isNaN(date.getTime())) {
+            return timeString; // Return original if parsing fails
+        }
+        return date.toTimeString().slice(0, 5); // Extract HH:MM
+    } catch {
+        return timeString; // Return original if anything fails
+    }
+};
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Classes',
@@ -560,6 +581,11 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                 ...formData,
                 start_date: formData.start_date ? new Date(formData.start_date).toISOString().slice(0, 10) : '',
                 end_date: formData.end_date ? new Date(formData.end_date).toISOString().slice(0, 10) : '',
+                schedules: formData.schedules.map((schedule) => ({
+                    ...schedule,
+                    start_time: formatTimeForBackend(schedule.start_time),
+                    end_time: formatTimeForBackend(schedule.end_time),
+                })),
             };
 
             const response = await fetch(url, {
@@ -1375,10 +1401,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                                                             index,
                                                                             'start_time',
                                                                             date
-                                                                                ? date.toLocaleTimeString('en-GB', {
-                                                                                      hour: '2-digit',
-                                                                                      minute: '2-digit',
-                                                                                  })
+                                                                                ? `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
                                                                                 : '',
                                                                         )
                                                                     }
@@ -1409,10 +1432,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                                                             index,
                                                                             'end_time',
                                                                             date
-                                                                                ? date.toLocaleTimeString('en-GB', {
-                                                                                      hour: '2-digit',
-                                                                                      minute: '2-digit',
-                                                                                  })
+                                                                                ? `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`
                                                                                 : '',
                                                                         )
                                                                     }
