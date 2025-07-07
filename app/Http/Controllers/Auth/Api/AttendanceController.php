@@ -111,7 +111,8 @@ class AttendanceController extends Controller
                 throw new MessageError('Your location is required to check in.');
             }
 
-            if (empty($session->class->location->latitude) || empty($session->class->location->longitude)) {
+            if (empty($session->class->location->latitude) || empty($session->class->location->longitude) ||
+                $session->class->location->latitude == 0 || $session->class->location->longitude == 0) {
                 throw new MessageError('This class does not have a location set. Please contact your teacher.');
             }
 
@@ -156,7 +157,7 @@ class AttendanceController extends Controller
 
     private function checkLocation($userLat, $userLon, $locationLat, $locationLon)
     {
-        if ($locationLat === null || $locationLon === null) {
+        if ($locationLat === null || $locationLon === null || $locationLat == 0 || $locationLon == 0) {
             return false;
         }
 

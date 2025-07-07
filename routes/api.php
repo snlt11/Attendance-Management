@@ -16,5 +16,5 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanc
 
 // Attendance routes
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/qr', AttendanceController::class);
+    Route::post('/attendance', AttendanceController::class);
 });
