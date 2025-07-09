@@ -124,4 +124,4 @@ All screenshots are located in the `images/` directory.
 
 **🙏 Thank you for visiting the Attendance Management System repository!**
 
-We appreciate your interest. If you have any questions or suggestions, feel free to open an issue or contribute to the project—no need to watch the repository.
+We appreciate your interest. If you have any questions or suggestions, feel free to open an issue or contribute to the project.
