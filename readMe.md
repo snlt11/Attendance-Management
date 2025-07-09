@@ -7,6 +7,23 @@ Modern web application built with Laravel 12 and React for managing class attend
 **New to the project? Start here!**
 
 See the [Docker Setup Guide](./DOCKER-README.md) for full instructions on running and developing this project with Docker.
+ 
+---
+
+## 📸 Screenshots & Feature Tour
+
+See step-by-step screenshots of the main features in [SCREENSHOTS.md](./SCREENSHOTS.md). Example images include:
+
+- Dashboard overview
+- Recent classes
+- User management
+- Subject management
+- Location management
+- Create location
+- Class list
+- Class QR code for attendance
+
+All screenshots are located in the `images/` directory.
 ---
 
 ## 📋 Table of Contents
