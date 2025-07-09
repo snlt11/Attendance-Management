@@ -30,9 +30,8 @@ All screenshots are located in the `images/` directory.
 
 - [Features](#features)
 - [Technology Stack](#technology-stack)
-- [Project Structure](#project-structure)
-- [API Endpoints](#api-endpoints)
-- [License](#license)
+- [Key Functionalities](#key-functionalities)
+- [Security Features](#security-features)
 
 ## ✨ Features
 
@@ -84,51 +83,6 @@ All screenshots are located in the `images/` directory.
 - **Lucide React** - Modern icon library
 - **Sonner** - Toast notifications
 
-
-## 🏗 Project Structure
-
-```
-attendance-management/
-├── app/
-│   ├── Http/Controllers/
-│   │   ├── ClassController.php       # Class management
-│   │   ├── UserController.php        # User management
-│   │   └── Auth/Api/
-│   │       └── AttendanceController.php # QR attendance
-│   ├── Models/
-│   │   ├── ClassModel.php           # Class entity
-│   │   ├── ClassSchedule.php        # Class scheduling
-│   │   ├── ClassSession.php         # Individual sessions
-│   │   ├── Attendance.php           # Attendance records
-│   │   ├── User.php                 # Users (teachers/students)
-│   │   ├── Subject.php              # Academic subjects
-│   │   └── Location.php             # Physical locations
-│   └── Helpers/
-│       └── Helper.php               # Utility functions
-├── database/
-│   ├── migrations/                  # Database schema
-│   ├── seeders/                     # Sample data
-│   └── factories/                   # Model factories
-├── resources/
-│   ├── js/
-│   │   ├── pages/
-│   │   │   ├── classes.tsx          # Class management UI
-│   │   │   ├── dashboard.tsx        # Dashboard
-│   │   │   └── users.tsx            # User management
-│   │   ├── layouts/
-│   │   │   └── AppLayout.tsx        # Main layout
-│   │   └── components/              # Reusable components
-│   └── css/                         # Stylesheets
-├── routes/
-│   ├── web.php                      # Web routes
-│   └── api.php                      # API routes
-├── docker/                          # Docker configuration
-├── docker-compose.yml               # Docker Compose setup
-├── package.json                     # Node.js dependencies
-├── composer.json                    # PHP dependencies
-└── .env.example                     # Environment template
-```
-
 ## 🔧 Key Functionalities
 
 ### Class Management
@@ -157,41 +111,6 @@ attendance-management/
 - **Distance Calculation**: Haversine formula for location verification
 - **Mobile Integration**: Access device location for attendance
 
-## 🌐 API Endpoints
-
-### Class Management
-
-```
-GET    /classes                     # List all classes
-POST   /classes                     # Create new class
-PUT    /classes/{id}                # Update class
-DELETE /classes/{id}                # Delete class
-```
-
-### Student Management
-
-```
-GET    /classes/{id}/students       # Get class students
-POST   /classes/{id}/students       # Add student to class
-DELETE /classes/{id}/students/{userId} # Remove student
-GET    /classes/{id}/students/search   # Search available students
-```
-
-### QR Code & Attendance
-
-```
-POST   /classes/{id}/generate-qr    # Generate QR code
-POST   /attendance                  # Mark attendance via QR
-```
-
-### Authentication
-
-```
-POST   /login                       # User login
-POST   /logout                      # User logout
-POST   /register                    # User registration
-```
-
 ## 🔒 Security Features
 
 - **Role-based Access Control**: Different permissions for teachers/students
@@ -201,27 +120,8 @@ POST   /register                    # User registration
 - **Time-limited QR Codes**: Prevents QR code reuse
 - **Database Transactions**: Ensures data consistency
 
-## 🧪 Testing
-
-Run the test suite:
-
-```bash
-# Run all tests
-php artisan test
-
-# Run a specific test file
-php artisan test tests/Feature/ClassControllerTest.php
-
-# Run with code coverage report
-php artisan test --coverage
-```
-
 ---
 
-## 📄 License
+**🙏 Thank you for visiting the Attendance Management System repository!**
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
----
-
-Thank you for using the Attendance Management System! If you have any questions or suggestions, feel free to open an issue or contribute to the project.
+We appreciate your interest. If you have any questions or suggestions, feel free to open an issue or contribute to the project—no need to watch the repository.
