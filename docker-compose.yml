@@ -35,7 +35,7 @@ services:
     volumes:
       - db_data:/var/lib/mysql
     ports:
-      - "7002:3306"    # MySQL
+      - "7003:3306"    # MySQL
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
@@ -48,7 +48,7 @@ services:
       PMA_USER: root
       PMA_PASSWORD: root
     ports:
-      - "7003:80"      # phpMyAdmin
+      - "7002:80"      # phpMyAdmin
     depends_on:
       - db
 

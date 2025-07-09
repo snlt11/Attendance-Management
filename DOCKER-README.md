@@ -80,7 +80,7 @@ docker-compose exec backend npm run dev -- --host
 ## 🌐 Access the app
 
 * Laravel App: [http://localhost:7001](http://localhost:7001)
-* phpMyAdmin: [http://localhost:7003](http://localhost:7003)
+* phpMyAdmin: [http://localhost:7002](http://localhost:7002)
 
   * Server: `db`
   * Username: `root`
