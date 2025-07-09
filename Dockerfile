@@ -1,90 +1,43 @@
-# Base PHP Image
-FROM php:8.2-fpm-alpine as base
+# Base image: PHP 8.2 + Apache
+FROM php:8.2-apache
 
-# Install system dependencies and PHP extensions
-RUN apk add --no-cache \
-    bash \
-    curl \
-    freetype-dev \
-    g++ \
-    gcc \
-    git \
-    icu-dev \
-    jpeg-dev \
-    libc-dev \
-    libpng-dev \
-    libzip-dev \
-    make \
-    mysql-client \
-    nodejs \
-    npm \
-    oniguruma-dev \
-    openssh-client \
-    rsync \
-    sqlite \
-    sqlite-dev \
-    zip \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) \
-        bcmath \
-        gd \
-        intl \
-        mbstring \
-        pdo \
-        pdo_mysql \
-        pdo_sqlite \
-        zip \
-    && rm -rf /var/cache/apk/*
-
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-
-# Set working directory
+# Set working directory to app root
 WORKDIR /var/www/html
 
-# Copy composer files
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      libzip-dev zip unzip git curl libonig-dev && \
+    docker-php-ext-install pdo_mysql zip && \
+    a2enmod rewrite headers && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install Node.js (Vite & React)
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y --no-install-recommends nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy composer files first for caching
 COPY composer.json composer.lock ./
 
-# Install PHP dependencies
-RUN composer install --no-dev --no-scripts --no-autoloader --optimize-autoloader
+# Copy full application (including artisan, public folder)
+COPY . ./
 
-# Copy application files
-COPY . .
+# Configure Apache to use Laravel's public directory
+RUN sed -ri 's!DocumentRoot /var/www/html!DocumentRoot /var/www/html/public!g' /etc/apache2/sites-available/*.conf && \
+    sed -ri 's!<Directory /var/www/html>!<Directory /var/www/html/public>!g' /etc/apache2/sites-available/*.conf
 
-# Generate autoload files
-RUN composer dump-autoload --optimize
+# Install Composer and PHP dependencies
+RUN curl -sS https://getcomposer.org/installer | php -- \
+        --install-dir=/usr/bin --filename=composer && \
+    composer install --prefer-dist --no-dev --optimize-autoloader --no-interaction
 
-# Set permissions
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/storage \
-    && chmod -R 755 /var/www/html/bootstrap/cache
+# Install Node dependencies & build assets
+RUN npm ci && npm run build
 
-# Backend target (PHP-FPM)
-FROM base as backend
+# Fix permissions for storage/bootstrap
+RUN chown -R www-data:www-data storage bootstrap/cache || true
 
-# Expose PHP-FPM port
-EXPOSE 9000
-
-# Start PHP-FPM
-CMD ["php-fpm"]
-
-# Frontend target (Node.js for Vite)
-FROM node:18-alpine as frontend
-
-# Set working directory
-WORKDIR /var/www/html
-
-# Copy package files
-COPY package.json package-lock.json* ./
-
-# Install Node.js dependencies
-RUN npm ci
-
-# Copy application files
-COPY . .
-
-# Expose Vite dev server port
-EXPOSE 5173
-
-# Start Vite dev server
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "5173"]
+# Expose Apache port
+EXPOSE 80
+CMD ["apache2-foreground"]
