@@ -63,11 +63,15 @@ docker-compose exec backend php artisan migrate
 > docker-compose exec backend php artisan db:seed
 > ```
 
-### 7. (Optional) Start Vite dev server with HMR
+### 7. Start Vite dev server with HMR
 
 ```bash
 docker-compose exec backend npm install
 
+docker-compose exec backend npm run build
+```
+(optional, for production build)
+```
 docker-compose exec backend npm run dev -- --host
 ```
 

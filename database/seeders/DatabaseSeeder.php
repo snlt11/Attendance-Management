@@ -123,7 +123,8 @@ class DatabaseSeeder extends Seeder
             // Add class schedules: Mon-Fri (1 per day), Sat/Sun (5 per day)
             $daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
             foreach ($daysOfWeek as $day) {
-                $count = in_array($day, ['saturday', 'sunday']) ? 5 : 1;
+                // $count = in_array($day, ['saturday', 'sunday']) ? 5 : 1;
+                $count = 1; 
                 for ($j = 0; $j < $count; $j++) {
                     $startHour = 8 + $j * 2; // 8:00, 10:00, 12:00, 14:00, 16:00
                     $endHour = $startHour + 1;
