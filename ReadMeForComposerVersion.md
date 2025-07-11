@@ -139,6 +139,9 @@ composer run dev:ssr
 - **Environment**: Removed Docker-specific variables
 - **URL**: Updated to `http://localhost:8000`
 - **Dependencies**: All managed through local PHP/Node installations
+- **Foreign Keys**: Disabled SQLite foreign key constraints for development
+- **Sessions**: Updated sessions table to handle UUID user references properly
+- **SQL Compatibility**: Updated all MySQL-specific SQL syntax to SQLite-compatible syntax
 
 ### Benefits of Local Setup:
 
@@ -180,9 +183,34 @@ composer run dev:ssr
 
 1. **Check PHP version**: `php --version` (should be 8.2+)
 2. **Check Node version**: `node --version` (should be 18+)
-3. **Clear Laravel cache**: `php artisan config:clear`
+3. **Clear Laravel cache**: `php artisan config:clear && php artisan cache:clear`
 4. **Reinstall dependencies**: `composer install && npm install`
 5. **Check database**: Ensure `database/database.sqlite` exists
+
+### Database Issues:
+
+If you encounter database constraint violations or foreign key errors:
+
+```bash
+# Reset the database completely
+rm database/database.sqlite
+touch database/database.sqlite
+php artisan migrate
+php artisan db:seed
+```
+
+### SQLite Specific Fixes:
+
+The project has been optimized for SQLite with these changes:
+
+- Foreign key constraints disabled during development (`DB_FOREIGN_KEYS=false`)
+- Sessions table updated to properly handle UUID foreign keys
+- Database migrations reordered to avoid constraint conflicts
+- **SQL Syntax Updates**:
+    - `DATE_FORMAT()` → `strftime()`
+    - `CONCAT()` → `||` (concatenation operator)
+    - `CURDATE() - INTERVAL 1 DAY` → `date('now', '-1 day')`
+    - Removed MySQL-specific functions from all database queries
 
 ### View Laravel logs:
 

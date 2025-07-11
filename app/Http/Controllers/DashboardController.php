@@ -50,37 +50,37 @@ class DashboardController extends Controller
             ->where('status', 'active')
             ->count();
 
-        // Get recent classes with detailed information using raw SQL for better performance
-        $recentClasses = DB::select("
-            SELECT 
-                cs.id,
-                s.name as subject,
-                CONCAT(u.name) as teacher,
-                DATE_FORMAT(cs.start_time, '%H:%i') as start_time,
-                DATE_FORMAT(cs.end_time, '%H:%i') as end_time,
-                CONCAT(DATE_FORMAT(cs.start_time, '%H:%i'), ' - ', DATE_FORMAT(cs.end_time, '%H:%i')) as time,
-                l.name as location,
-                cs.status,
-                c.max_students as capacity,
-                COALESCE(attendance_count.attendees, 0) as attendees,
-                cs.session_date
-            FROM class_sessions cs
-            JOIN classes c ON cs.class_id = c.id
-            JOIN subjects s ON c.subject_id = s.id
-            JOIN users u ON c.user_id = u.id
-            JOIN locations l ON c.location_id = l.id
-            LEFT JOIN (
+        // Get recent classes with detailed information using Laravel Query Builder for better compatibility
+        $recentClasses = DB::table('class_sessions as cs')
+            ->join('classes as c', 'cs.class_id', '=', 'c.id')
+            ->join('subjects as s', 'c.subject_id', '=', 's.id')
+            ->join('users as u', 'c.user_id', '=', 'u.id')
+            ->join('locations as l', 'c.location_id', '=', 'l.id')
+            ->leftJoin(DB::raw('(
                 SELECT 
                     class_session_id,
                     COUNT(*) as attendees
                 FROM attendances 
-                WHERE status = 'present'
+                WHERE status = "present"
                 GROUP BY class_session_id
-            ) attendance_count ON cs.id = attendance_count.class_session_id
-            WHERE cs.session_date >= CURDATE() - INTERVAL 1 DAY
-            ORDER BY cs.session_date DESC, cs.start_time DESC
-            LIMIT 20
-        ");
+            ) as attendance_count'), 'cs.id', '=', 'attendance_count.class_session_id')
+            ->select([
+                'cs.id',
+                's.name as subject',
+                'u.name as teacher',
+                'cs.start_time',
+                'cs.end_time',
+                'l.name as location',
+                'cs.status',
+                'c.max_students as capacity',
+                DB::raw('COALESCE(attendance_count.attendees, 0) as attendees'),
+                'cs.session_date'
+            ])
+            ->whereDate('cs.session_date', '>=', Carbon::yesterday())
+            ->orderByDesc('cs.session_date')
+            ->orderByDesc('cs.start_time')
+            ->limit(20)
+            ->get();
 
         // Calculate growth percentage for students (mock calculation based on assumption)
         $lastMonthStudents = DB::table('users')
@@ -106,15 +106,20 @@ class DashboardController extends Controller
 
         // Format recent classes data to match frontend expectations
         $formattedRecentClasses = collect($recentClasses)->map(function ($class) {
+            // Format time properly for display
+            $startTime = Carbon::parse($class->start_time)->format('H:i');
+            $endTime = Carbon::parse($class->end_time)->format('H:i');
+            $timeRange = $startTime . ' - ' . $endTime;
+
             return [
                 'id' => $class->id,
                 'subject' => $class->subject,
                 'teacher' => $class->teacher,
-                'time' => $class->time,
+                'time' => $timeRange,
                 'location' => $class->location,
                 'attendees' => (int) $class->attendees,
                 'capacity' => (int) $class->capacity,
-                'status' => $this->mapSessionStatus($class->status, $class->start_time, $class->end_time, $class->session_date)
+                'status' => $this->mapSessionStatus($class->status, $startTime, $endTime, $class->session_date)
             ];
         });
 
@@ -130,8 +135,11 @@ class DashboardController extends Controller
     private function mapSessionStatus($dbStatus, $startTime, $endTime, $sessionDate)
     {
         $now = Carbon::now();
-        $sessionStart = Carbon::parse($sessionDate . ' ' . $startTime);
-        $sessionEnd = Carbon::parse($sessionDate . ' ' . $endTime);
+
+        // Parse session date and times properly
+        $sessionDateOnly = Carbon::parse($sessionDate)->format('Y-m-d');
+        $sessionStart = Carbon::parse($sessionDateOnly . ' ' . $startTime);
+        $sessionEnd = Carbon::parse($sessionDateOnly . ' ' . $endTime);
 
         if ($now->isBefore($sessionStart)) {
             return 'upcoming';
