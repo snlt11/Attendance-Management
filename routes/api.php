@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TimetableController;
 use App\Http\Controllers\Auth\Api\AuthController;
 use App\Http\Controllers\Auth\Api\AttendanceController;
 
@@ -17,4 +18,5 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanc
 // Attendance routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/attendance', AttendanceController::class);
+    Route::get('/time-table', TimetableController::class);
 });
