@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TimetableController;
 use App\Http\Controllers\Auth\Api\AuthController;
+use App\Http\Controllers\Auth\Api\ClassController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -21,4 +22,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/attendance', AttendanceController::class);
     Route::post('/attendance', CheckInAttendanceController::class);
     Route::get('/timetable', TimetableController::class);
+    Route::get('/classes', ClassController::class);
 });
