@@ -24,14 +24,11 @@ class AttendanceController extends Controller
 
         $attendanceRecords = $this->getAttendanceRecords($user->id, $classId);
 
-        $attendancePercentage = $this->calculateAttendancePercentage($attendanceRecords);
-
-        $formattedRecords = $this->formatAttendanceRecords($attendanceRecords);
+        $formattedRecords = $this->formatAttendanceRecordsByClass($attendanceRecords);
 
         return response()->json([
             'success' => true,
             'data' => [
-                'attendance_percentage' => $attendancePercentage,
                 'records' => $formattedRecords
             ]
         ]);
@@ -78,32 +75,38 @@ class AttendanceController extends Controller
         return round(($presentSessions / $totalSessions) * 100);
     }
 
-    private function formatAttendanceRecords($attendanceRecords): array
+    private function formatAttendanceRecordsByClass($attendanceRecords): array
     {
-        return $attendanceRecords
-            ->map(fn($record) => [
-                'attendance_id' => $record->attendance_id,
-                'class_id' => $record->class_id,
-                'class_name' => $record->class_name,
-                'teacher_name' => $record->teacher_name,
-                'location' => $record->location,
-                'date' => $record->date,
-                'day_of_week' => ucfirst($record->day_of_week),
-                'time' => $this->formatTime($record->start_time, $record->end_time),
-                'status' => $record->status,
-                'checked_in_at' => $this->formatCheckedInTime($record->checked_in_at),
-            ])
-            ->values()
-            ->toArray();
+        $groupedRecords = $attendanceRecords->groupBy('class_id');
+
+        return $groupedRecords->map(function ($classRecords, $classId) {
+            $firstRecord = $classRecords->first();
+            $attendancePercentage = $this->calculateAttendancePercentage($classRecords);
+
+            $sessions = $classRecords->map(function ($record) {
+                return [
+                    'date' => $record->date,
+                    'day_of_week' => ucfirst($record->day_of_week),
+                    'time' => $this->formatTime($record->start_time, $record->end_time),
+                    'status' => $record->status,
+                    // 'checked_in_at' => $this->formatCheckedInTime($record->checked_in_at),
+                ];
+            })->values()->toArray();
+
+            return [
+                'class_name' => $firstRecord->class_name,
+                'attendance_percentage' => $attendancePercentage,
+                // 'attendance_id' => $firstRecord->attendance_id,
+                'class_id' => $firstRecord->class_id,
+                'teacher_name' => $firstRecord->teacher_name,
+                'location' => $firstRecord->location,
+                'sessions' => $sessions
+            ];
+        })->values()->toArray();
     }
 
     private function formatTime(string $startTime, string $endTime): string
     {
         return Carbon::parse($startTime)->format('H:i') . ' - ' . Carbon::parse($endTime)->format('H:i');
-    }
-
-    private function formatCheckedInTime(?string $checkedInAt): ?string
-    {
-        return $checkedInAt ? Carbon::parse($checkedInAt)->format('Y-m-d H:i:s') : null;
     }
 }

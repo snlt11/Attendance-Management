@@ -1,37 +1,112 @@
 [
-    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000001", "name": "Mathematics", "code": "MATH101", "description": "Fundamentals of mathematics" },
+    {
+        "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000001",
+        "name": "English Communication",
+        "code": "ENG101",
+        "description": "Effective communication in English"
+    },
     {
         "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000002",
-        "name": "English Language",
-        "code": "ENG101",
-        "description": "Introduction to English language and literature"
+        "name": "Basic Mathematics",
+        "code": "MATH101",
+        "description": "Foundational mathematics for daily use"
     },
-    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000003", "name": "Physics", "code": "PHY101", "description": "Basic principles of physics" },
-    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000004", "name": "Chemistry", "code": "CHEM101", "description": "Introduction to chemistry" },
-    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000005", "name": "Biology", "code": "BIO101", "description": "Fundamentals of biology" },
-    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000006", "name": "History", "code": "HIST101", "description": "World history overview" },
-    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000007", "name": "Geography", "code": "GEO101", "description": "Physical and human geography" },
-    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000008", "name": "Computer Science", "code": "CS101", "description": "Introduction to computer science" },
-    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000009", "name": "Economics", "code": "ECON101", "description": "Principles of economics" },
-    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000010", "name": "Art", "code": "ART101", "description": "Introduction to art and design" },
-    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000011", "name": "Music", "code": "MUS101", "description": "Fundamentals of music theory" },
-    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000012", "name": "Physical Education", "code": "PE101", "description": "Physical fitness and health" },
+    {
+        "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000003",
+        "name": "Computer Basics",
+        "code": "CS101",
+        "description": "Introduction to computers and technology"
+    },
+    {
+        "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000004",
+        "name": "Life Skills",
+        "code": "LS101",
+        "description": "Skills for personal and professional growth"
+    },
+    {
+        "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000005",
+        "name": "Business English",
+        "code": "BE101",
+        "description": "English for business and workplace communication"
+    },
+    {
+        "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000006",
+        "name": "Public Speaking",
+        "code": "PS101",
+        "description": "Techniques for effective public speaking"
+    },
+    {
+        "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000007",
+        "name": "Digital Literacy",
+        "code": "DL101",
+        "description": "Understanding digital tools and safety"
+    },
+    {
+        "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000008",
+        "name": "Critical Thinking",
+        "code": "CT101",
+        "description": "Developing analytical and problem-solving skills"
+    },
+    {
+        "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000009",
+        "name": "Teamwork & Leadership",
+        "code": "TL101",
+        "description": "Working in teams and leading projects"
+    },
+    {
+        "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000010",
+        "name": "Financial Literacy",
+        "code": "FL101",
+        "description": "Managing personal and family finances"
+    },
+    {
+        "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000011",
+        "name": "Entrepreneurship",
+        "code": "ENT101",
+        "description": "Starting and managing small businesses"
+    },
+    {
+        "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000012",
+        "name": "Customer Service",
+        "code": "CSRV101",
+        "description": "Principles of excellent customer service"
+    },
     {
         "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000013",
-        "name": "Business Studies",
-        "code": "BUS101",
-        "description": "Basics of business and management"
+        "name": "Hospitality Skills",
+        "code": "HS101",
+        "description": "Skills for the hospitality industry"
     },
-    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000014", "name": "Psychology", "code": "PSY101", "description": "Introduction to psychology" },
-    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000015", "name": "Philosophy", "code": "PHIL101", "description": "Fundamentals of philosophy" },
-    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000016", "name": "Sociology", "code": "SOC101", "description": "Introduction to sociology" },
-    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000017", "name": "Political Science", "code": "POL101", "description": "Principles of political science" },
+    {
+        "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000014",
+        "name": "Health & Wellness",
+        "code": "HW101",
+        "description": "Maintaining physical and mental health"
+    },
+    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000015", "name": "Art & Creativity", "code": "ART101", "description": "Exploring creative expression" },
+    {
+        "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000016",
+        "name": "Music & Performance",
+        "code": "MUS101",
+        "description": "Music appreciation and performance skills"
+    },
+    {
+        "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000017",
+        "name": "Foreign Language - Chinese",
+        "code": "CHN101",
+        "description": "Basic Chinese language skills"
+    },
     {
         "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000018",
-        "name": "Environmental Science",
-        "code": "ENV101",
-        "description": "Basics of environmental science"
+        "name": "Foreign Language - Japanese",
+        "code": "JPN101",
+        "description": "Basic Japanese language skills"
     },
-    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000019", "name": "French Language", "code": "FR101", "description": "Introduction to French language" },
-    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000020", "name": "Spanish Language", "code": "SPN101", "description": "Introduction to Spanish language" }
+    {
+        "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000019",
+        "name": "Foreign Language - Korean",
+        "code": "KOR101",
+        "description": "Basic Korean language skills"
+    },
+    { "id": "c2b8e3d1-2d3e-5f4a-9b8c-000000000020", "name": "Foreign Language - Thai", "code": "THA101", "description": "Basic Thai language skills" }
 ]

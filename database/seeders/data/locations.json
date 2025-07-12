@@ -1,201 +1,212 @@
 [
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000001",
-        "name": "Yangon University",
-        "latitude": 16.7987,
-        "longitude": 96.1497,
-        "address": "Kamayut, Yangon"
+        "name": "Bangkok Learning Center",
+        "latitude": 13.7563,
+        "longitude": 100.5018,
+        "address": "Bangkok, Thailand"
     },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000002",
-        "name": "Mandalay University",
-        "latitude": 21.9811,
-        "longitude": 96.0869,
-        "address": "Chanayethazan, Mandalay"
+        "name": "Hanoi Education Hub",
+        "latitude": 21.0285,
+        "longitude": 105.8542,
+        "address": "Hanoi, Vietnam"
     },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000003",
-        "name": "Dagon University",
-        "latitude": 16.9021,
-        "longitude": 96.1586,
-        "address": "North Dagon, Yangon"
+        "name": "Jakarta Training Center",
+        "latitude": -6.2088,
+        "longitude": 106.8456,
+        "address": "Jakarta, Indonesia"
     },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000004",
-        "name": "Yadanabon University",
-        "latitude": 22.0511,
-        "longitude": 96.0906,
-        "address": "Amarapura, Mandalay"
+        "name": "Kuala Lumpur Academy",
+        "latitude": 3.139,
+        "longitude": 101.6869,
+        "address": "Kuala Lumpur, Malaysia"
     },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000005",
-        "name": "Taunggyi University",
-        "latitude": 20.7892,
-        "longitude": 97.0378,
-        "address": "Taunggyi, Shan State"
+        "name": "Manila Learning Institute",
+        "latitude": 14.5995,
+        "longitude": 120.9842,
+        "address": "Manila, Philippines"
     },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000006",
-        "name": "Pathein University",
-        "latitude": 16.7792,
-        "longitude": 94.7321,
-        "address": "Pathein, Ayeyarwady"
+        "name": "Singapore Education Center",
+        "latitude": 1.3521,
+        "longitude": 103.8198,
+        "address": "Singapore"
     },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000007",
-        "name": "Monywa University",
-        "latitude": 22.1044,
-        "longitude": 95.1358,
-        "address": "Monywa, Sagaing"
+        "name": "Vientiane Training Hub",
+        "latitude": 17.9757,
+        "longitude": 102.6331,
+        "address": "Vientiane, Laos"
     },
-    { "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000008", "name": "Pyay University", "latitude": 18.8241, "longitude": 95.2217, "address": "Pyay, Bago" },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000008",
+        "name": "Phnom Penh Academy",
+        "latitude": 11.5564,
+        "longitude": 104.9282,
+        "address": "Phnom Penh, Cambodia"
+    },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000009",
-        "name": "Meiktila University",
-        "latitude": 20.8772,
-        "longitude": 95.8586,
-        "address": "Meiktila, Mandalay"
+        "name": "Yangon Learning Center",
+        "latitude": 16.7987,
+        "longitude": 96.1497,
+        "address": "Yangon, Myanmar"
     },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000010",
-        "name": "Magway University",
-        "latitude": 20.1536,
-        "longitude": 94.9325,
-        "address": "Magway, Magway"
+        "name": "Dili Education Hub",
+        "latitude": -8.5569,
+        "longitude": 125.5603,
+        "address": "Dili, Timor-Leste"
     },
-    { "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000011", "name": "Bago University", "latitude": 17.3369, "longitude": 96.4814, "address": "Bago, Bago" },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000011",
+        "name": "Chiang Mai Learning Center",
+        "latitude": 18.7883,
+        "longitude": 98.9853,
+        "address": "Chiang Mai, Thailand"
+    },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000012",
-        "name": "Hpa-An University",
-        "latitude": 16.8886,
-        "longitude": 97.6342,
-        "address": "Hpa-An, Kayin"
+        "name": "Ho Chi Minh City Academy",
+        "latitude": 10.8231,
+        "longitude": 106.6297,
+        "address": "Ho Chi Minh City, Vietnam"
     },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000013",
-        "name": "Mawlamyine University",
-        "latitude": 16.4917,
-        "longitude": 97.6259,
-        "address": "Mawlamyine, Mon"
+        "name": "Surabaya Training Hub",
+        "latitude": -7.2575,
+        "longitude": 112.7521,
+        "address": "Surabaya, Indonesia"
     },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000014",
-        "name": "Sittwe University",
-        "latitude": 20.1462,
-        "longitude": 92.896,
-        "address": "Sittwe, Rakhine"
+        "name": "Penang Education Center",
+        "latitude": 5.4164,
+        "longitude": 100.3327,
+        "address": "Penang, Malaysia"
     },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000015",
-        "name": "Myitkyina University",
-        "latitude": 25.3864,
-        "longitude": 97.3945,
-        "address": "Myitkyina, Kachin"
+        "name": "Cebu Learning Institute",
+        "latitude": 10.3157,
+        "longitude": 123.8854,
+        "address": "Cebu, Philippines"
     },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000016",
-        "name": "Loikaw University",
-        "latitude": 19.6781,
-        "longitude": 97.209,
-        "address": "Loikaw, Kayah"
+        "name": "Batam Training Center",
+        "latitude": 1.0456,
+        "longitude": 104.0305,
+        "address": "Batam, Indonesia"
     },
-    { "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000017", "name": "Hakha University", "latitude": 22.65, "longitude": 93.6167, "address": "Hakha, Chin" },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000017",
+        "name": "Mandalay Education Hub",
+        "latitude": 21.9162,
+        "longitude": 96.1527,
+        "address": "Mandalay, Myanmar"
+    },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000018",
-        "name": "Naypyitaw University",
-        "latitude": 19.7633,
-        "longitude": 96.0785,
-        "address": "Zabuthiri, Naypyitaw"
+        "name": "Luang Prabang Academy",
+        "latitude": 19.8856,
+        "longitude": 102.1347,
+        "address": "Luang Prabang, Laos"
     },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000019",
-        "name": "Pyin Oo Lwin University",
-        "latitude": 22.035,
-        "longitude": 96.456,
-        "address": "Pyin Oo Lwin, Mandalay"
+        "name": "Siem Reap Training Hub",
+        "latitude": 13.3671,
+        "longitude": 103.8448,
+        "address": "Siem Reap, Cambodia"
     },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000020",
-        "name": "Shwebo University",
-        "latitude": 22.5786,
-        "longitude": 95.6986,
-        "address": "Shwebo, Sagaing"
+        "name": "Naypyidaw Learning Center",
+        "latitude": 19.7633,
+        "longitude": 96.0785,
+        "address": "Naypyidaw, Myanmar"
     },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000021",
-        "name": "Myeik University",
-        "latitude": 12.4394,
-        "longitude": 98.6003,
-        "address": "Myeik, Tanintharyi"
+        "name": "Bali Education Hub",
+        "latitude": -8.3405,
+        "longitude": 115.092,
+        "address": "Bali, Indonesia"
     },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000022",
-        "name": "Dawei University",
-        "latitude": 14.0736,
-        "longitude": 98.1942,
-        "address": "Dawei, Tanintharyi"
+        "name": "Phuket Training Center",
+        "latitude": 7.8804,
+        "longitude": 98.3923,
+        "address": "Phuket, Thailand"
     },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000023",
-        "name": "Lashio University",
-        "latitude": 22.9353,
-        "longitude": 97.7522,
-        "address": "Lashio, Shan State"
+        "name": "Da Nang Academy",
+        "latitude": 16.0544,
+        "longitude": 108.2022,
+        "address": "Da Nang, Vietnam"
     },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000024",
-        "name": "Kyaingtong University",
-        "latitude": 21.3,
-        "longitude": 99.6,
-        "address": "Kyaingtong, Shan State"
+        "name": "Medan Learning Institute",
+        "latitude": 3.5952,
+        "longitude": 98.6722,
+        "address": "Medan, Indonesia"
     },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000025",
-        "name": "Hinthada University",
-        "latitude": 17.6489,
-        "longitude": 95.4572,
-        "address": "Hinthada, Ayeyarwady"
+        "name": "George Town Education Center",
+        "latitude": 5.4141,
+        "longitude": 100.3288,
+        "address": "George Town, Malaysia"
     },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000026",
-        "name": "Pakokku University",
-        "latitude": 21.3325,
-        "longitude": 95.0861,
-        "address": "Pakokku, Magway"
+        "name": "Zamboanga Training Hub",
+        "latitude": 6.9214,
+        "longitude": 122.079,
+        "address": "Zamboanga, Philippines"
     },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000027",
-        "name": "Mawlamyinegyun University",
-        "latitude": 15.9722,
-        "longitude": 95.2681,
-        "address": "Mawlamyinegyun, Ayeyarwady"
+        "name": "Baguio Learning Center",
+        "latitude": 16.4023,
+        "longitude": 120.596,
+        "address": "Baguio, Philippines"
     },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000028",
-        "name": "Bogale University",
-        "latitude": 16.2872,
-        "longitude": 95.4,
-        "address": "Bogale, Ayeyarwady"
+        "name": "Pattaya Education Hub",
+        "latitude": 12.9236,
+        "longitude": 100.8825,
+        "address": "Pattaya, Thailand"
     },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000029",
-        "name": "Kyaukse University",
-        "latitude": 21.61,
-        "longitude": 96.1322,
-        "address": "Kyaukse, Mandalay"
+        "name": "Hue Academy",
+        "latitude": 16.4637,
+        "longitude": 107.5909,
+        "address": "Hue, Vietnam"
     },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000030",
-        "name": "Thandwe University",
-        "latitude": 18.4667,
-        "longitude": 94.3667,
-        "address": "Thandwe, Rakhine"
-    },
-    {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000031",
-        "name": "Taungoo University",
-        "latitude": 18.9461,
-        "longitude": 96.4347,
-        "address": "Taungoo, Bago"
+        "name": "Palembang Training Center",
+        "latitude": -2.9909,
+        "longitude": 104.7566,
+        "address": "Palembang, Indonesia"
     }
 ]
