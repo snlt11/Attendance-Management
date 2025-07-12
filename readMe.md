@@ -6,8 +6,14 @@ Modern web application built with Laravel 12 and React for managing class attend
 
 **New to the project? Start here!**
 
-See the [Docker Setup Guide](./DOCKER-README.md) for full instructions on running and developing this project with Docker.
- 
+1. Clone the repository
+2. Install PHP, Composer, Node.js, and MySQL (see requirements in [ReadMeForComposerVersion.md](./ReadMeForComposerVersion.md))
+3. Run `composer install` and `npm install`
+4. Copy `.env.example` to `.env` and configure your environment variables
+5. Run `php artisan migrate --seed` to set up the database
+6. Run `npm run dev` to start the frontend
+7. Run `php artisan serve` to start the backend
+
 ---
 
 ## 📸 Screenshots & Feature Tour
@@ -23,8 +29,7 @@ See step-by-step screenshots of the main features in [SCREENSHOTS.md](./SCREENSH
 - Class list
 - Class QR code for attendance
 
-All screenshots are located in the `images/` directory.
----
+## All screenshots are located in the `images/` directory.
 
 ## 📋 Table of Contents
 
@@ -32,6 +37,20 @@ All screenshots are located in the `images/` directory.
 - [Technology Stack](#technology-stack)
 - [Key Functionalities](#key-functionalities)
 - [Security Features](#security-features)
+- [Composer Version & PHP Requirements](#composer-version--php-requirements)
+
+## 📦 Composer Version & PHP Requirements
+
+For details about the required Composer version, PHP version, and related dependencies, please see the dedicated documentation:
+
+- [ReadMeForComposerVersion.md](./ReadMeForComposerVersion.md)
+
+This file includes information about:
+
+- Supported Composer versions
+- Minimum PHP version required
+- Dependency management tips
+- Troubleshooting Composer issues
 
 ## ✨ Features
 
