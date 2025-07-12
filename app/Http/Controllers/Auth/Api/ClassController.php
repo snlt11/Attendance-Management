@@ -63,20 +63,16 @@ class ClassController extends Controller
         $userId = Auth::id();
         $today = Carbon::today()->format('Y-m-d');
 
-        // Build base query with optimized joins
-        $query = DB::table('class_students as cs')
+        // First get unique classes
+        $classQuery = DB::table('class_students as cs')
             ->join('classes as c', 'cs.class_id', '=', 'c.id')
             ->join('users as u', 'c.user_id', '=', 'u.id')
             ->join('locations as l', 'c.location_id', '=', 'l.id')
-            ->join('class_schedules as csc', 'c.id', '=', 'csc.class_id')
             ->select([
                 'c.id as class_id',
                 'c.name as class_name',
                 'u.name as teacher',
                 'l.name as location',
-                'csc.start_time',
-                'csc.end_time',
-                'csc.day_of_week',
                 'c.start_date',
                 'c.end_date'
             ])
@@ -84,26 +80,44 @@ class ClassController extends Controller
 
         // Apply date filter at database level for better performance
         if ($filter === 'past') {
-            $query->where('c.end_date', '<', $today)
+            $classQuery->where('c.end_date', '<', $today)
                 ->orderBy('c.end_date', 'desc');
         } else {
-            $query->where('c.end_date', '>=', $today)
+            $classQuery->where('c.end_date', '>=', $today)
                 ->orderBy('c.start_date', 'asc');
         }
 
-        $rawClasses = $query->get();
+        $classes = $classQuery->get();
 
-        // Format the data using Collection methods
-        return collect($rawClasses)->map(function ($class) {
+        // Get schedules for each class
+        $classIds = $classes->pluck('class_id')->toArray();
+        $schedules = DB::table('class_schedules')
+            ->whereIn('class_id', $classIds)
+            ->get()
+            ->groupBy('class_id');
+
+        // Format the data by combining schedules for each class
+        return $classes->map(function ($class) use ($schedules) {
+            $classSchedules = $schedules->get($class->class_id, collect());
+
+            // Extract unique time slots and days
+            $timeSlots = $classSchedules->map(function ($schedule) {
+                return $this->formatTime($schedule->start_time, $schedule->end_time);
+            })->unique()->implode(', ');
+
+            $daysOfWeek = $classSchedules->map(function ($schedule) {
+                return ucfirst($schedule->day_of_week);
+            })->implode(', ');
+
             return [
                 'class_id' => $class->class_id,
                 'class_name' => $class->class_name,
                 'teacher' => $class->teacher,
                 'location' => $class->location,
-                'time' => $this->formatTime($class->start_time, $class->end_time),
-                'day_of_week' => ucfirst($class->day_of_week),
-                'start_date' => $class->start_date,
-                'end_date' => $class->end_date
+                'time' => $timeSlots ?: 'No schedule',
+                'day_of_week' => $daysOfWeek ?: 'No schedule',
+                'from_date' => $class->start_date,
+                'to_date' => $class->end_date
             ];
         })->values()->toArray();
     }

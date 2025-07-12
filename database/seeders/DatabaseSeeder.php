@@ -16,16 +16,19 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::updateOrCreate([
-            'name' => 'Admin',
-            'email' => 'admin@admin.com',
-            'role' => 'teacher',
-            'status' => 'active',
-            'password' => bcrypt('SuperSecure@123'),
-            'phone' => '0123456789',
-            'date_of_birth' => '1980-01-01',
-            'address' => '123 Admin Street, Admin City, Admin Country',
-        ]);
+        // Create admin user if it doesn't exist
+        User::firstOrCreate(
+            ['email' => 'admin@admin.com'],
+            [
+                'name' => 'Admin',
+                'role' => 'teacher',
+                'status' => 'active',
+                'password' => bcrypt('SuperSecure@123'),
+                'phone' => '0123456789',
+                'date_of_birth' => '1980-01-01',
+                'address' => '123 Admin Street, Admin City, Admin Country',
+            ]
+        );
 
         // Create users from users.json and fill missing fields with Faker
         $usersDataPath = database_path('seeders/data/users.json');
@@ -88,7 +91,7 @@ class DatabaseSeeder extends Seeder
 
         sleep(1);
 
-        // Create classes and assign at least 10 students to each
+        // Create current/ongoing classes and assign at least 10 students to each
         $subjects = Subject::all();
         $teachers = User::where('role', 'teacher')->get();
         $students = User::where('role', 'student')->get();
@@ -96,6 +99,8 @@ class DatabaseSeeder extends Seeder
         $faker = \Faker\Factory::create('en_US');
         $classCount = min($subjects->count(), $teachers->count(), $locations->count());
         $studentChunks = $students->chunk(10);
+
+        // Create current/ongoing classes
         $i = 0;
         foreach ($subjects as $subject) {
             if ($i >= $classCount) break;
@@ -154,6 +159,13 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
             $i++;
+        }
+
+        // Create historical classes (completed classes for testing class history)
+        if (ClassModel::where('status', 'completed')->count() === 0) {
+            $this->createHistoricalClasses($subjects, $teachers, $students, $locations, $faker, $studentChunks);
+        } else {
+            echo "Historical classes already exist, skipping creation.\n";
         }
 
         // Create sample class sessions and attendance for dashboard testing
@@ -345,5 +357,112 @@ class DatabaseSeeder extends Seeder
                 }
             }
         }
+    }
+
+    /**
+     * Create historical classes (completed classes for testing class history)
+     */
+    private function createHistoricalClasses($subjects, $teachers, $students, $locations, $faker, $studentChunks)
+    {
+        echo "Creating historical classes for testing class history...\n";
+
+        // Create 6-8 historical classes from different time periods
+        $historicalPeriods = [
+            // Last year classes
+            [
+                'start_range' => '-12 months',
+                'end_range' => '-10 months',
+                'count' => 2,
+                'prefix' => 'Advanced'
+            ],
+            [
+                'start_range' => '-9 months',
+                'end_range' => '-7 months',
+                'count' => 2,
+                'prefix' => 'Intermediate'
+            ],
+            // Earlier this year
+            [
+                'start_range' => '-6 months',
+                'end_range' => '-4 months',
+                'count' => 2,
+                'prefix' => 'Foundation'
+            ],
+            // Recently completed
+            [
+                'start_range' => '-3 months',
+                'end_range' => '-1 week',
+                'count' => 2,
+                'prefix' => 'Intensive'
+            ]
+        ];
+
+        $historyClassIndex = 0;
+
+        foreach ($historicalPeriods as $period) {
+            for ($p = 0; $p < $period['count']; $p++) {
+                if ($historyClassIndex >= $subjects->count()) break;
+
+                $subject = $subjects[$historyClassIndex % $subjects->count()];
+                $teacher = $teachers[$historyClassIndex % $teachers->count()];
+                $location = $locations[$historyClassIndex % $locations->count()];
+
+                $startDate = $faker->dateTimeBetween($period['start_range'], $period['end_range']);
+                $endDate = (clone $startDate)->modify('+2 months'); // 2 month course duration
+
+                $historicalClass = ClassModel::create([
+                    'subject_id' => $subject->id,
+                    'location_id' => $location->id,
+                    'user_id' => $teacher->id,
+                    'name' => $period['prefix'] . ' ' . $subject->name . ' Class',
+                    'description' => $period['prefix'] . ' course in ' . $subject->name . '. ' . ($subject->description ?: $faker->sentence),
+                    'status' => 'completed', // Mark as completed
+                    'registration_code' => strtoupper($faker->bothify('HIS####')),
+                    'start_date' => $startDate->format('Y-m-d'),
+                    'end_date' => $endDate->format('Y-m-d'),
+                    'max_students' => rand(15, 30),
+                    'created_at' => $startDate,
+                    'updated_at' => $endDate,
+                ]);
+
+                // Attach students to historical classes
+                $studentSet = $studentChunks[$historyClassIndex % $studentChunks->count()];
+                $historicalClass->students()->attach($studentSet->pluck('id')->toArray());
+
+                // Add schedules for historical classes
+                $historicalSchedulePatterns = [
+                    ['monday', 'wednesday', 'friday'],
+                    ['tuesday', 'thursday'],
+                    ['monday', 'tuesday', 'wednesday', 'thursday'],
+                    ['saturday'],
+                    ['monday', 'wednesday']
+                ];
+
+                $pattern = $historicalSchedulePatterns[$historyClassIndex % count($historicalSchedulePatterns)];
+                $timeSlots = [
+                    ['09:00', '10:30'],
+                    ['11:00', '12:30'],
+                    ['14:00', '15:30'],
+                    ['16:00', '17:30'],
+                    ['18:00', '19:30']
+                ];
+
+                $selectedTimeSlot = $timeSlots[array_rand($timeSlots)];
+
+                foreach ($pattern as $day) {
+                    $historicalClass->schedules()->create([
+                        'day_of_week' => $day,
+                        'start_time' => $selectedTimeSlot[0],
+                        'end_time' => $selectedTimeSlot[1],
+                    ]);
+                }
+
+                $historyClassIndex++;
+
+                echo "Created historical class: {$historicalClass->name} ({$startDate->format('Y-m-d')} to {$endDate->format('Y-m-d')})\n";
+            }
+        }
+
+        echo "Historical classes created successfully!\n";
     }
 }
