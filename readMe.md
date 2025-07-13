@@ -2,12 +2,6 @@
 
 Modern web application built with Laravel 12 and React for managing class attendance with QR code functionality. This system allows teachers to create and manage classes, generate QR codes for attendance tracking, and provides students with an easy way to mark their attendance using mobile devices.
 
-## 🚀 Quick Start
-
-**New to the project? Start here!**
-
-## See requirements in [ReadMeForComposerVersion.md](./ReadMeForComposerVersion.md)
-
 ## 📸 Screenshots & Feature Tour
 
 See step-by-step screenshots of the main features in [SCREENSHOTS.md](./SCREENSHOTS.md). Example images include:
