@@ -20,7 +20,7 @@ class ClassController extends Controller
         if (!$user) {
             return response()->json([
                 'message' => 'Unauthorized. Only authenticated users can access class information.'
-            ], 403);
+            ], 401);
         }
 
         $request->validate([

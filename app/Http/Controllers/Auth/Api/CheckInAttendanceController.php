@@ -17,37 +17,41 @@ class CheckInAttendanceController extends Controller
     {
         try {
             $user = Auth::user();
+
             if (!$user) {
-                throw new MessageError('User not authenticated.');
+                throw new MessageError('User not authenticated.', 401);
             }
 
             if ($user->role !== 'student') {
-                throw new MessageError('Only students can scan QR codes for attendance.');
+                throw new MessageError('Only students can scan QR codes for attendance.', 403);
             }
+
 
             $qrToken = $request->input('qr_token');
             if (!$qrToken || !is_string($qrToken) || strlen($qrToken) < 10) {
-                throw new MessageError('QR token is required and must be valid.');
+                throw new MessageError('QR token is required and must be valid.', 422);
             }
 
             // Find session with this QR token (do not filter by expiry yet)
+
             $session = ClassSession::where('qr_token', $qrToken)
                 ->where('status', 'active')
                 ->with(['class.subject', 'class.teacher', 'class.location'])
                 ->first();
 
             if (!$session) {
-                throw new MessageError('Invalid QR code. Please ask your teacher to generate a new one.');
+                throw new MessageError('Invalid QR code. Please ask your teacher to generate a new one.', 404);
             }
 
             // Check QR code expiry
+
             if (!$session->expires_at || Carbon::now()->gt($session->expires_at)) {
-                throw new MessageError('This QR code has expired. Please ask your teacher to generate a new one.');
+                throw new MessageError('This QR code has expired. Please ask your teacher to generate a new one.', 410);
             }
 
             // Defensive: check for missing relationships
             if (!$session->class || !$session->class->subject || !$session->class->teacher || !$session->class->location) {
-                throw new MessageError('Class session data is incomplete. Please contact your teacher or admin.');
+                throw new MessageError('Class session data is incomplete. Please contact your teacher or admin.', 422);
             }
             $isEnrolled = DB::table('class_students')
                 ->where('class_id', $session->class_id)
@@ -55,7 +59,7 @@ class CheckInAttendanceController extends Controller
                 ->exists();
 
             if (!$isEnrolled) {
-                throw new MessageError('You are not enrolled in this class.');
+                throw new MessageError('You are not enrolled in this class.', 403);
             }
 
             // Check if already checked in for this session
@@ -85,39 +89,46 @@ class CheckInAttendanceController extends Controller
             $classEndDate = Carbon::parse($session->class->end_date, 'Asia/Yangon');
 
             // Check if class session is before the class start date
+
             if ($now->lt($classStartDate)) {
-                throw new MessageError('You cannot check in before the class start date: ' . $classStartDate->format('Y-m-d') . '.');
+                throw new MessageError('You cannot check in before the class start date: ' . $classStartDate->format('Y-m-d') . '.', 403);
             }
 
             // Check if class session is in the future
             if ($now->gt($classEndDate)) {
-                throw new MessageError('You cannot check in for a class that has already ended on ' . $classEndDate->format('Y-m-d') . '.');
+                throw new MessageError('You cannot check in for a class that has already ended on ' . $classEndDate->format('Y-m-d') . '.', 403);
             }
 
             // Check class schedule start and end time
             $classStartTime = Carbon::parse($session->start_time, 'Asia/Yangon');
             $classEndTime = Carbon::parse($session->end_time, 'Asia/Yangon');
+
             if ($now->lt($classStartTime) || $now->gt($classEndTime)) {
                 throw new MessageError('You can only check in during the class schedule time: ' .
                     $classStartTime->format('H:i') . ' - ' .
-                    $classEndTime->format('H:i') . '.');
+                    $classEndTime->format('H:i') . '.', 403);
             }
 
             // latitude and longitude
             $latitude = $request->input('latitude');
             $longitude = $request->input('longitude');
 
+
             if ($latitude === null || $longitude === null) {
-                throw new MessageError('Your location is required to check in.');
+                throw new MessageError('Your location is required to check in.', 422);
             }
 
-            if (empty($session->class->location->latitude) || empty($session->class->location->longitude) ||
-                $session->class->location->latitude == 0 || $session->class->location->longitude == 0) {
-                throw new MessageError('This class does not have a location set. Please contact your teacher.');
+
+            if (
+                empty($session->class->location->latitude) || empty($session->class->location->longitude) ||
+                $session->class->location->latitude == 0 || $session->class->location->longitude == 0
+            ) {
+                throw new MessageError('This class does not have a location set. Please contact your teacher.', 422);
             }
+
 
             if (!$this->checkLocation($latitude, $longitude, $session->class->location->latitude, $session->class->location->longitude)) {
-                throw new MessageError('You are not close enough to the class location to check in.');
+                throw new MessageError('You are not close enough to the class location to check in.', 403);
             }
 
 

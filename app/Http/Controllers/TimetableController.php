@@ -24,7 +24,11 @@ class TimetableController extends Controller
     {
         $user = Auth::user();
 
-        if (!$user) return response()->json(['message' => 'Unauthorized'], 401);
+        if (!$user) {
+            return response()->json([
+                'message' => 'Unauthorized. Only authenticated users can access timetable information.'
+            ], 401);
+        }
 
 
         // Get optional class_id parameter

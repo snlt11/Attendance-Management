@@ -17,7 +17,7 @@ class AttendanceController extends Controller
         if (!$user) {
             return response()->json([
                 'message' => 'Unauthorized. Only authenticated users can access attendance records.'
-            ], 403);
+            ], 401);
         }
 
         $classId = $request->query('class_id');
