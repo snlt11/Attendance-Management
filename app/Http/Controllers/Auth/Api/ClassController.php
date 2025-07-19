@@ -28,45 +28,25 @@ class ClassController extends Controller
             'current' => 'boolean',
         ]);
 
-        return match (true) {
-            $request->has('history') => $this->getClassHistory(),
-            $request->has('current') => $this->getCurrentClass(),
-            default => $this->getAllClasses(),
+        $result = match (true) {
+            $request->has('history') => [
+                'key' => 'history_classes',
+                'data' => $this->fetchClassesByDateFilter('history')
+            ],
+            $request->has('current') => [
+                'key' => 'current_classes',
+                'data' => $this->fetchClassesByDateFilter('current')
+            ],
+            default => [
+                'key' => 'all_classes',
+                'data' => $this->fetchClassesByDateFilter('all')
+            ],
         };
-    }
-
-    private function getAllClasses()
-    {
-        $allClasses = $this->fetchClassesByDateFilter('all');
 
         return response()->json([
             'success' => true,
             'data' => [
-                'all_classes' => $allClasses
-            ]
-        ]);
-    }
-
-    private function getClassHistory()
-    {
-        $pastClasses = $this->fetchClassesByDateFilter('past');
-
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'past_classes' => $pastClasses
-            ]
-        ]);
-    }
-
-    private function getCurrentClass()
-    {
-        $currentClasses = $this->fetchClassesByDateFilter('current');
-
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'current_classes' => $currentClasses
+                $result['key'] => $result['data']
             ]
         ]);
     }
@@ -92,15 +72,11 @@ class ClassController extends Controller
             ->where('cs.user_id', $userId);
 
         // Apply date filter at database level for better performance
-        if ($filter === 'past') {
-            $classQuery->where('c.end_date', '<', $today)
-                ->orderBy('c.end_date', 'desc');
-        } else if( $filter === 'current') {
-            $classQuery->where('c.end_date', '>=', $today)
-                ->orderBy('c.start_date', 'asc');
-        } else {
-            $classQuery->orderBy('c.start_date', 'asc');
-        }
+        match ($filter) {
+            'history' => $classQuery->where('c.end_date', '<', $today)->orderBy('c.end_date', 'desc'),
+            'current' => $classQuery->where('c.end_date', '>=', $today)->orderBy('c.start_date', 'asc'),
+            default => $classQuery->orderBy('c.start_date', 'asc'),
+        };
 
         $classes = $classQuery->get();
 
