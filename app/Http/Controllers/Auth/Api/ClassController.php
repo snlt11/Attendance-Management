@@ -30,8 +30,21 @@ class ClassController extends Controller
 
         return match (true) {
             $request->has('history') => $this->getClassHistory(),
-            default => $this->getCurrentClass(),
+            $request->has('current') => $this->getCurrentClass(),
+            default => $this->getAllClasses(),
         };
+    }
+
+    private function getAllClasses()
+    {
+        $allClasses = $this->fetchClassesByDateFilter('all');
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'all_classes' => $allClasses
+            ]
+        ]);
     }
 
     private function getClassHistory()
@@ -82,9 +95,11 @@ class ClassController extends Controller
         if ($filter === 'past') {
             $classQuery->where('c.end_date', '<', $today)
                 ->orderBy('c.end_date', 'desc');
-        } else {
+        } else if( $filter === 'current') {
             $classQuery->where('c.end_date', '>=', $today)
                 ->orderBy('c.start_date', 'asc');
+        } else {
+            $classQuery->orderBy('c.start_date', 'asc');
         }
 
         $classes = $classQuery->get();
