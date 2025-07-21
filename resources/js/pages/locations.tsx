@@ -1087,7 +1087,7 @@ export default function Locations({ locations: initialLocations }: LocationsPage
                                             <MapPin className="h-6 w-6" />
                                         </div>
                                         <div className="min-w-0 flex-1">
-                                            <h3 className="truncate text-lg font-semibold text-gray-900 dark:text-gray-100">{location.name}</h3>
+                                            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{location.name}</h3>
                                             {location.address && (
                                                 <p className="line-clamp-2 text-sm text-gray-600 dark:text-gray-400">{location.address}</p>
                                             )}

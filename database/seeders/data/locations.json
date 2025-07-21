@@ -1,212 +1,142 @@
 [
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000001",
-        "name": "Bangkok Learning Center",
-        "latitude": 13.7563,
-        "longitude": 100.5018,
-        "address": "Bangkok, Thailand"
+        "name": "Yangon Tech Center",
+        "latitude": 16.7967,
+        "longitude": 96.1610,
+        "address": "Downtown Yangon, Myanmar"
     },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000002",
-        "name": "Hanoi Education Hub",
-        "latitude": 21.0285,
-        "longitude": 105.8542,
-        "address": "Hanoi, Vietnam"
+        "name": "Mandalay Digital Hub",
+        "latitude": 21.9588,
+        "longitude": 96.0891,
+        "address": "Mandalay City, Myanmar"
     },
     {
         "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000003",
-        "name": "Jakarta Training Center",
-        "latitude": -6.2088,
-        "longitude": 106.8456,
-        "address": "Jakarta, Indonesia"
-    },
-    {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000004",
-        "name": "Kuala Lumpur Academy",
-        "latitude": 3.139,
-        "longitude": 101.6869,
-        "address": "Kuala Lumpur, Malaysia"
-    },
-    {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000005",
-        "name": "Manila Learning Institute",
-        "latitude": 14.5995,
-        "longitude": 120.9842,
-        "address": "Manila, Philippines"
-    },
-    {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000006",
-        "name": "Singapore Education Center",
-        "latitude": 1.3521,
-        "longitude": 103.8198,
-        "address": "Singapore"
-    },
-    {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000007",
-        "name": "Vientiane Training Hub",
-        "latitude": 17.9757,
-        "longitude": 102.6331,
-        "address": "Vientiane, Laos"
-    },
-    {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000008",
-        "name": "Phnom Penh Academy",
-        "latitude": 11.5564,
-        "longitude": 104.9282,
-        "address": "Phnom Penh, Cambodia"
-    },
-    {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000009",
-        "name": "Yangon Learning Center",
-        "latitude": 16.7987,
-        "longitude": 96.1497,
-        "address": "Yangon, Myanmar"
-    },
-    {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000010",
-        "name": "Dili Education Hub",
-        "latitude": -8.5569,
-        "longitude": 125.5603,
-        "address": "Dili, Timor-Leste"
-    },
-    {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000011",
-        "name": "Chiang Mai Learning Center",
-        "latitude": 18.7883,
-        "longitude": 98.9853,
-        "address": "Chiang Mai, Thailand"
-    },
-    {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000012",
-        "name": "Ho Chi Minh City Academy",
-        "latitude": 10.8231,
-        "longitude": 106.6297,
-        "address": "Ho Chi Minh City, Vietnam"
-    },
-    {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000013",
-        "name": "Surabaya Training Hub",
-        "latitude": -7.2575,
-        "longitude": 112.7521,
-        "address": "Surabaya, Indonesia"
-    },
-    {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000014",
-        "name": "Penang Education Center",
-        "latitude": 5.4164,
-        "longitude": 100.3327,
-        "address": "Penang, Malaysia"
-    },
-    {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000015",
-        "name": "Cebu Learning Institute",
-        "latitude": 10.3157,
-        "longitude": 123.8854,
-        "address": "Cebu, Philippines"
-    },
-    {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000016",
-        "name": "Batam Training Center",
-        "latitude": 1.0456,
-        "longitude": 104.0305,
-        "address": "Batam, Indonesia"
-    },
-    {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000017",
-        "name": "Mandalay Education Hub",
-        "latitude": 21.9162,
-        "longitude": 96.1527,
-        "address": "Mandalay, Myanmar"
-    },
-    {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000018",
-        "name": "Luang Prabang Academy",
-        "latitude": 19.8856,
-        "longitude": 102.1347,
-        "address": "Luang Prabang, Laos"
-    },
-    {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000019",
-        "name": "Siem Reap Training Hub",
-        "latitude": 13.3671,
-        "longitude": 103.8448,
-        "address": "Siem Reap, Cambodia"
-    },
-    {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000020",
         "name": "Naypyidaw Learning Center",
         "latitude": 19.7633,
         "longitude": 96.0785,
         "address": "Naypyidaw, Myanmar"
     },
     {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000021",
-        "name": "Bali Education Hub",
-        "latitude": -8.3405,
-        "longitude": 115.092,
-        "address": "Bali, Indonesia"
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000004",
+        "name": "Mawlamyine Tech Institute",
+        "latitude": 16.4919,
+        "longitude": 97.6278,
+        "address": "Mawlamyine, Mon State, Myanmar"
     },
     {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000022",
-        "name": "Phuket Training Center",
-        "latitude": 7.8804,
-        "longitude": 98.3923,
-        "address": "Phuket, Thailand"
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000005",
+        "name": "Taunggyi Innovation Center",
+        "latitude": 20.7839,
+        "longitude": 97.0384,
+        "address": "Taunggyi, Shan State, Myanmar"
     },
     {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000023",
-        "name": "Da Nang Academy",
-        "latitude": 16.0544,
-        "longitude": 108.2022,
-        "address": "Da Nang, Vietnam"
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000006",
+        "name": "Bagan Coding Academy",
+        "latitude": 21.1717,
+        "longitude": 94.8574,
+        "address": "Old Bagan, Mandalay Region, Myanmar"
     },
     {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000024",
-        "name": "Medan Learning Institute",
-        "latitude": 3.5952,
-        "longitude": 98.6722,
-        "address": "Medan, Indonesia"
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000007",
+        "name": "Pathein Tech Center",
+        "latitude": 16.7795,
+        "longitude": 94.7320,
+        "address": "Pathein, Ayeyarwady Region, Myanmar"
     },
     {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000025",
-        "name": "George Town Education Center",
-        "latitude": 5.4141,
-        "longitude": 100.3288,
-        "address": "George Town, Malaysia"
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000008",
+        "name": "Sittwe Digital Hub",
+        "latitude": 20.1484,
+        "longitude": 92.8957,
+        "address": "Sittwe, Rakhine State, Myanmar"
     },
     {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000026",
-        "name": "Zamboanga Training Hub",
-        "latitude": 6.9214,
-        "longitude": 122.079,
-        "address": "Zamboanga, Philippines"
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000009",
+        "name": "Myitkyina Learning Center",
+        "latitude": 25.3837,
+        "longitude": 97.3967,
+        "address": "Myitkyina, Kachin State, Myanmar"
     },
     {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000027",
-        "name": "Baguio Learning Center",
-        "latitude": 16.4023,
-        "longitude": 120.596,
-        "address": "Baguio, Philippines"
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000010",
+        "name": "Monywa Tech Institute",
+        "latitude": 22.1086,
+        "longitude": 95.1354,
+        "address": "Monywa, Sagaing Region, Myanmar"
     },
     {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000028",
-        "name": "Pattaya Education Hub",
-        "latitude": 12.9236,
-        "longitude": 100.8825,
-        "address": "Pattaya, Thailand"
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000011",
+        "name": "Meiktila Innovation Hub",
+        "latitude": 20.8781,
+        "longitude": 95.8591,
+        "address": "Meiktila, Mandalay Region, Myanmar"
     },
     {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000029",
-        "name": "Hue Academy",
-        "latitude": 16.4637,
-        "longitude": 107.5909,
-        "address": "Hue, Vietnam"
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000012",
+        "name": "Magway Programming Center",
+        "latitude": 20.1494,
+        "longitude": 94.9330,
+        "address": "Magway, Magway Region, Myanmar"
     },
     {
-        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000030",
-        "name": "Palembang Training Center",
-        "latitude": -2.9909,
-        "longitude": 104.7566,
-        "address": "Palembang, Indonesia"
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000013",
+        "name": "Hpa-An Tech Academy",
+        "latitude": 16.8879,
+        "longitude": 97.6348,
+        "address": "Hpa-An, Kayin State, Myanmar"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000014",
+        "name": "Pyay Digital Center",
+        "latitude": 18.8282,
+        "longitude": 95.2281,
+        "address": "Pyay, Bago Region, Myanmar"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000015",
+        "name": "Loikaw Learning Institute",
+        "latitude": 19.6783,
+        "longitude": 97.2054,
+        "address": "Loikaw, Kayah State, Myanmar"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000016",
+        "name": "Dawei Coding Bootcamp",
+        "latitude": 14.0837,
+        "longitude": 98.2109,
+        "address": "Dawei, Tanintharyi Region, Myanmar"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000017",
+        "name": "Hakha Tech Center",
+        "latitude": 22.6468,
+        "longitude": 93.6086,
+        "address": "Hakha, Chin State, Myanmar"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000018",
+        "name": "Taungoo Programming Hub",
+        "latitude": 18.9378,
+        "longitude": 96.4340,
+        "address": "Taungoo, Bago Region, Myanmar"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000019",
+        "name": "Myeik Development Center",
+        "latitude": 12.4394,
+        "longitude": 98.6006,
+        "address": "Myeik, Tanintharyi Region, Myanmar"
+    },
+    {
+        "id": "b1a7e2c0-1c2d-4e3f-8a9b-000000000020",
+        "name": "Lashio Digital Academy",
+        "latitude": 22.9359,
+        "longitude": 97.7498,
+        "address": "Lashio, Shan State, Myanmar"
     }
 ]
