@@ -80,7 +80,7 @@ class CheckInAttendanceController extends Controller
                         'start_time' => $session->start_time,
                         'end_time' => $session->end_time,
                     ]
-                ], 200);
+                ], 409);
             }
 
             $now = $request->input('datetime') ? Carbon::parse($request->input('datetime'), 'Asia/Yangon') : Carbon::now('Asia/Yangon');

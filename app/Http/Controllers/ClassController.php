@@ -364,18 +364,19 @@ class ClassController extends Controller
                 ], 422);
             }
 
-            // Find or create session for today with specific start and end times
-            $session = $class->sessions()
-                ->where('session_date', now()->toDateString())
-                ->where('start_time', $todaySchedule->start_time)
-                ->where('end_time', $todaySchedule->end_time)
-                ->first();
+            $today = now()->toDateString();
+
+            // Use whereDate to compare only the date part, ignoring time
+            $session = $class->sessions()->whereDate('session_date', $today)->first();
 
             $token = Str::random(32);
             $expiresAt = now()->addMinutes(5)->setTimezone('Asia/Yangon');
 
             if ($session) {
                 $session->update([
+                    'class_schedule_id' => $todaySchedule->id,
+                    'start_time' => $todaySchedule->start_time,
+                    'end_time' => $todaySchedule->end_time,
                     'qr_token' => $token,
                     'expires_at' => $expiresAt,
                     'status' => 'active'
@@ -383,7 +384,7 @@ class ClassController extends Controller
             } else {
                 $session = $class->sessions()->create([
                     'class_schedule_id' => $todaySchedule->id,
-                    'session_date' => now()->toDateString(),
+                    'session_date' => $today,
                     'start_time' => $todaySchedule->start_time,
                     'end_time' => $todaySchedule->end_time,
                     'status' => 'active',
