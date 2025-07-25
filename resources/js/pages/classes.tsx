@@ -19,7 +19,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import axios from 'axios';
 import { debounce } from 'lodash';
 import {
@@ -287,6 +287,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
     const [isRemoveStudentDialogOpen, setIsRemoveStudentDialogOpen] = useState(false);
     const [modalKey, setModalKey] = useState(0);
 
+    console.log('class', classStudents);
     // Countdown timer effect with auto-regeneration
     useEffect(() => {
         if (!qrExpiryTime || !isQRModalOpen || !currentQRClass) return;
@@ -766,7 +767,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
 
             if (minutesRemaining > 0) {
                 toast.info(
-                    `QR code generated successfully! 
+                    `QR code generated successfully!
                     QR code will expire in ${minutesRemaining} minute${minutesRemaining !== 1 ? 's' : ''}. ` +
                         'Students can scan it to record their attendance.',
                     { duration: 6000 },
@@ -826,8 +827,6 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
             toast.success(`New class code generated: ${data.registration_code}`, {
                 duration: 1500,
             });
-
-            
         } catch (error) {
             console.error('Failed to generate class code:', error);
             toast.error(error instanceof Error ? error.message : 'Failed to generate new class code');
@@ -1812,6 +1811,15 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                                                 {student.name}
                                                             </p>
                                                             <p className="truncate text-xs text-gray-600 dark:text-gray-400">{student.email}</p>
+                                                            <div className='flex flex-col'>
+                                                                <span className="text-xs text-gray-600 dark:text-gray-400">Attendance - 90%</span>
+                                                                <Link
+                                                                    href={`/classes/${detailsClass?.id}/students/${student.id}/attendances`}
+                                                                    className="cursor-pointer text-center mt-2 rounded-full bg-blue-600 px-2 py-1 text-xs text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                                                                >
+                                                                    View Attendance
+                                                                </Link>
+                                                            </div>
                                                         </div>
                                                         {auth.user.role === 'teacher' && (
                                                             <button

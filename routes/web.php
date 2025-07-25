@@ -5,6 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\AttendanceController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -35,6 +36,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('students/search', [ClassController::class, 'searchAvailableStudents'])->name('classes.students.search');
         Route::post('students', [ClassController::class, 'addStudent'])->name('classes.students.store');
         Route::delete('students/{user}', [ClassController::class, 'removeStudent'])->name('classes.students.destroy');
+        Route::get('students/{student}/attendances', [AttendanceController::class, 'index'])
+            ->defaults('page', 1)
+            ->name('classes.students.attendances');
     });
 
     // Subject routes
