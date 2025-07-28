@@ -19,9 +19,7 @@ class AttendanceController extends Controller
         $endDate = Carbon::parse($class->end_date);
 
         // If class hasn't ended yet, use today's date as end date
-        if ($endDate->isFuture()) {
-            $endDate = Carbon::now();
-        }
+        if ($endDate->isFuture()) $onlyForAttendances = Carbon::now();
 
         $perPage = 12;
         $page = $request->get('page', 1);
@@ -29,7 +27,7 @@ class AttendanceController extends Controller
         // Get all class sessions between start date and today, with attendance info
         $sessions = $class->sessions()
             ->where('session_date', '>=', $startDate)
-            ->where('session_date', '<=', $endDate)
+            ->where('session_date', '<=', $onlyForAttendances)
             ->with(['attendances' => function ($query) use ($studentId) {
                 $query->where('user_id', $studentId);
             }])

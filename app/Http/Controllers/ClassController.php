@@ -420,6 +420,32 @@ class ClassController extends Controller
             $students = $class->students()->get(['users.id', 'users.name', 'users.email']);
             $all_students = User::where('role', 'student')->orderBy('name')->get(['id', 'name', 'email']);
 
+            // Calculate attendance percentage for each student for the full class period
+            $startDate = $class->start_date;
+            $endDate = $class->end_date;
+            $totalSessions = $class->sessions()
+                ->where('session_date', '>=', $startDate)
+                ->where('session_date', '<=', $endDate)
+                ->count();
+
+            $students = $students->map(function ($student) use ($class, $startDate, $endDate, $totalSessions) {
+                $attendedSessions = $class->sessions()
+                    ->whereHas('attendances', function ($query) use ($student) {
+                        $query->where('user_id', $student->id)
+                            ->where('status', 'present');
+                    })
+                    ->where('session_date', '>=', $startDate)
+                    ->where('session_date', '<=', $endDate)
+                    ->count();
+
+                $attendance_percentage = $totalSessions > 0
+                    ? round(($attendedSessions / $totalSessions) * 100, 2)
+                    : 0;
+
+                $student->attendance_percentage = $attendance_percentage;
+                return $student;
+            });
+
             return response()->json([
                 'students' => $students,
                 'all_students' => $all_students,

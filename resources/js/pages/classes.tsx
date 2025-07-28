@@ -119,6 +119,7 @@ interface Student {
     id: string;
     name: string;
     email: string;
+    attendance_percentage?: number;
 }
 
 // Enhanced Pagination Component
@@ -1811,11 +1812,13 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                                                 {student.name}
                                                             </p>
                                                             <p className="truncate text-xs text-gray-600 dark:text-gray-400">{student.email}</p>
-                                                            <div className='flex flex-col'>
-                                                                <span className="text-xs text-gray-600 dark:text-gray-400">Attendance - 90%</span>
+                                                            <div className="flex flex-col">
+                                                                <span className="text-xs text-gray-600 dark:text-gray-400">
+                                                                    Attendance - {student.attendance_percentage ?? 0}%
+                                                                </span>
                                                                 <Link
                                                                     href={`/classes/${detailsClass?.id}/students/${student.id}/attendances`}
-                                                                    className="cursor-pointer text-center mt-2 rounded-full bg-blue-600 px-2 py-1 text-xs text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                                                                    className="mt-2 cursor-pointer rounded-full bg-blue-600 px-2 py-1 text-center text-xs text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
                                                                 >
                                                                     View Attendance
                                                                 </Link>
