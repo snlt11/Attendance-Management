@@ -1408,7 +1408,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
 
                                                         <div className="space-y-2">
                                                             <Label htmlFor={`start_time_${index}`}>Start Time</Label>
-                                                            <div className="relative z-40">
+                                                            <div className="relative ">
                                                                 <DatePicker
                                                                     selected={
                                                                         schedule.start_time ? new Date(`1970-01-01T${schedule.start_time}`) : null
@@ -1441,7 +1441,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
 
                                                         <div className="space-y-2">
                                                             <Label htmlFor={`end_time_${index}`}>End Time</Label>
-                                                            <div className="relative z-40">
+                                                            <div className="relative ">
                                                                 <DatePicker
                                                                     selected={schedule.end_time ? new Date(`1970-01-01T${schedule.end_time}`) : null}
                                                                     onChange={(date: Date | null) =>
