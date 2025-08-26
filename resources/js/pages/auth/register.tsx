@@ -14,6 +14,7 @@ type RegisterForm = {
     email: string;
     password: string;
     password_confirmation: string;
+    registration_key: string;
 };
 
 export default function Register() {
@@ -22,6 +23,7 @@ export default function Register() {
         email: '',
         password: '',
         password_confirmation: '',
+        registration_key: '',
     });
 
     const submit: FormEventHandler = (e) => {
@@ -101,7 +103,23 @@ export default function Register() {
                         <InputError message={errors.password_confirmation} />
                     </div>
 
-                    <Button type="submit" className="mt-2 w-full" tabIndex={5} disabled={processing}>
+                    <div className="grid gap-2">
+                        <Label htmlFor="registration_key">Registration Key</Label>
+                        <Input
+                            id="registration_key"
+                            type="password"
+                            required
+                            tabIndex={5}
+                            autoComplete="registration-key"
+                            value={data.registration_key}
+                            onChange={(e) => setData('registration_key', e.target.value)}
+                            disabled={processing}
+                            placeholder="Registration Key"
+                        />
+                        <InputError message={errors.registration_key} />
+                    </div>
+
+                    <Button type="submit" className="mt-2 w-full" tabIndex={6} disabled={processing}>
                         {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
                         Create account
                     </Button>
@@ -109,7 +127,7 @@ export default function Register() {
 
                 <div className="text-center text-sm text-muted-foreground">
                     Already have an account?{' '}
-                    <TextLink href={route('login')} tabIndex={6}>
+                    <TextLink href={route('login')} tabIndex={7}>
                         Log in
                     </TextLink>
                 </div>

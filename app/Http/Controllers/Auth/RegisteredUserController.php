@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\SchoolSettingModel;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -31,8 +32,20 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
+            'registration_key' => 'required|string',
+        ]);
+
+        $setting = SchoolSettingModel::where('key', $request->registration_key)->first();
+        if (!$setting) {
+            return redirect()->back()->withErrors(['registration_key' => 'Invalid registration key.']);
+        }
+        if ($setting->is_used) {
+            return redirect()->back()->withErrors(['registration_key' => 'Registration key is already used.']);
+        }
+
+        $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -41,6 +54,9 @@ class RegisteredUserController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
+        
+        $user->update(['role' => 'teacher']);
+        $setting->update(['is_used' => true]);
 
         event(new Registered($user));
 

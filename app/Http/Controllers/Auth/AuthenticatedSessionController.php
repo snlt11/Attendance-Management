@@ -31,6 +31,12 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
+        $user = Auth::user();
+        if ($user && isset($user->role) && $user->role === 'student') {
+            Auth::logout();
+            return redirect()->back()->withErrors(['email' => 'Students are not allowed to login to dashboard.']);
+        }
+
         $request->session()->regenerate();
 
         return redirect()->intended(route('dashboard', absolute: false));

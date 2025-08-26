@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\SchoolSettingModel;
 use App\Models\User;
 use App\Models\ClassModel;
 use App\Models\Location;
@@ -29,6 +30,12 @@ class DatabaseSeeder extends Seeder
                 'address' => '123 Admin Street, Admin City, Admin Country',
             ]
         );
+
+        SchoolSettingModel::updateOrCreate([
+            'key' => 'ABCXYZ',
+        ], [
+            'is_used' => false,
+        ]);
 
         // Create users from users.json and fill missing fields with Faker
         $usersDataPath = database_path('seeders/data/users.json');
