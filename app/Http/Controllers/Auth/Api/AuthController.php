@@ -9,6 +9,7 @@ use App\Models\ClassModel;
 use App\Exceptions\MessageError;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rules;
 
 class AuthController extends Controller
 {
@@ -17,7 +18,15 @@ class AuthController extends Controller
         $data = $request->validate([
             'name'              => 'required|string|max:255',
             'email'             => 'required|email',
-            'password'          => 'required|string|confirmed|min:6',
+            'password'          => [
+                'required',
+                'string',
+                'confirmed',
+                Rules\Password::min(8)
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols()
+            ],
             'registration_code' => 'required|string',
         ]);
 
@@ -73,7 +82,11 @@ class AuthController extends Controller
     {
         $data = $request->validate([
             'email'    => 'required|email',
-            'password' => 'required|string',
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+            ],
         ]);
 
         $user = User::where('email', $data['email'])->first();
