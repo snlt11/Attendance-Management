@@ -521,7 +521,7 @@ export default function UserManagement({
                                                 <SelectValue placeholder="Select role" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {roles.map((role) => (
+                                                {roles.filter(r=>r.label !== 'Student').map((role) => (
                                                     <SelectItem key={role.value} value={role.value}>
                                                         {role.label}
                                                     </SelectItem>
