@@ -530,7 +530,7 @@ class ClassController extends Controller
                 });
             }
 
-            $students = $query->limit(20)->get(['id', 'name', 'email']);
+            $students = $query->limit(100)->get(['id', 'name', 'email']);
 
             return response()->json([
                 'students' => $students

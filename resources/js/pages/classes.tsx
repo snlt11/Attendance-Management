@@ -362,6 +362,8 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                 params: { search: '' },
             });
             setAvailableStudents(availableResponse.data.students);
+            console.log('response',availableResponse.data)
+            console.log('available', availableStudents);
         } catch (error: unknown) {
             console.error(error);
             const errorMessage =
@@ -1718,6 +1720,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                                 <SelectValue placeholder="Select a student to add" />
                                             </SelectTrigger>
                                             <SelectContent className="max-h-[300px] overflow-y-auto dark:border-gray-700 dark:bg-gray-800">
+
                                                 {availableStudents.length === 0 ? (
                                                     <div className="p-3 text-center text-sm text-gray-500 dark:text-gray-400">
                                                         {isFetchingStudents ? 'Loading...' : 'All students are enrolled'}
