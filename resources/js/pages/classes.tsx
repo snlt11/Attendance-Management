@@ -43,7 +43,7 @@ import {
 } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import type React from 'react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import { toast, Toaster } from 'sonner';
@@ -287,6 +287,9 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
     const [isRemovingStudent, setIsRemovingStudent] = useState(false);
     const [isRemoveStudentDialogOpen, setIsRemoveStudentDialogOpen] = useState(false);
     const [modalKey, setModalKey] = useState(0);
+    const [studentSearch, setStudentSearch] = useState('');
+    const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
 
     console.log('class', classStudents);
     // Countdown timer effect with auto-regeneration
@@ -350,10 +353,12 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
         setIsDetailsModalOpen(true);
         setIsFetchingStudents(true);
         setModalKey((prev) => prev + 1); // Force re-render
+        setStudentSearch(''); // Reset search
 
         // Clear previous data
         setClassStudents([]);
         setAvailableStudents([]);
+        setFilteredStudents([]);
 
         try {
             const response = await axios.get(`/classes/${classItem.id}/students`);
@@ -362,6 +367,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                 params: { search: '' },
             });
             setAvailableStudents(availableResponse.data.students);
+            setFilteredStudents(availableResponse.data.students);
         } catch (error: unknown) {
             console.error(error);
             const errorMessage =
@@ -381,6 +387,57 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
             setIsFetchingStudents(false);
         }
     };
+
+    const handleStudentSearch = useCallback(
+        async (searchTerm: string) => {
+            if (!detailsClass) return;
+
+            if (!searchTerm.trim()) {
+                setFilteredStudents(availableStudents);
+                setIsSearching(false);
+                return;
+            }
+
+            try {
+                setIsSearching(true);
+                const response = await axios.get(`/classes/${detailsClass.id}/students/search`, {
+                    params: { search: searchTerm },
+                });
+                setFilteredStudents(response.data.students);
+            } catch (error) {
+                console.error('Error searching students:', error);
+                setFilteredStudents([]);
+            } finally {
+                setIsSearching(false);
+            }
+        },
+        [detailsClass, availableStudents],
+    );
+
+    // Debounced version to avoid too many API calls - using useMemo for stability
+    const debouncedStudentSearch = useMemo(() => debounce(handleStudentSearch, 300), [handleStudentSearch]);
+
+    // Stable input handler
+    const handleInputChange = useCallback(
+        (value: string) => {
+            setStudentSearch(value);
+            if (!value.trim()) {
+                setFilteredStudents(availableStudents);
+                setIsSearching(false);
+                debouncedStudentSearch.cancel(); // Cancel any pending search
+            } else {
+                debouncedStudentSearch(value);
+            }
+        },
+        [availableStudents, debouncedStudentSearch],
+    );
+
+    // Cleanup effect to cancel pending debounced calls
+    useEffect(() => {
+        return () => {
+            debouncedStudentSearch.cancel();
+        };
+    }, [debouncedStudentSearch]);
 
     const handleAddStudent = async () => {
         if (!studentToAdd || !detailsClass) return;
@@ -415,8 +472,10 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
 
             // Update available students
             setAvailableStudents((prev) => prev.filter((s) => s.id !== studentToAdd));
+            setFilteredStudents((prev) => prev.filter((s) => s.id !== studentToAdd));
 
             setStudentToAdd(null);
+            setStudentSearch('');
             toast.success('Student added successfully!');
         } catch (error: unknown) {
             const errorMessage =
@@ -1408,7 +1467,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
 
                                                         <div className="space-y-2">
                                                             <Label htmlFor={`start_time_${index}`}>Start Time</Label>
-                                                            <div className="relative ">
+                                                            <div className="relative">
                                                                 <DatePicker
                                                                     selected={
                                                                         schedule.start_time ? new Date(`1970-01-01T${schedule.start_time}`) : null
@@ -1441,7 +1500,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
 
                                                         <div className="space-y-2">
                                                             <Label htmlFor={`end_time_${index}`}>End Time</Label>
-                                                            <div className="relative ">
+                                                            <div className="relative">
                                                                 <DatePicker
                                                                     selected={schedule.end_time ? new Date(`1970-01-01T${schedule.end_time}`) : null}
                                                                     onChange={(date: Date | null) =>
@@ -1712,46 +1771,77 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                         <UserPlus className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                                         <h3 className="text-sm font-medium text-blue-900 dark:text-blue-200">Add New Student</h3>
                                     </div>
-                                    <div className="flex gap-3">
-                                        <Select onValueChange={setStudentToAdd} value={studentToAdd || ''} key={`select-${availableStudents.length}`}>
-                                            <SelectTrigger className="h-9 flex-1 bg-white text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
-                                                <SelectValue placeholder="Select a student to add" />
-                                            </SelectTrigger>
-                                            <SelectContent className="max-h-[300px] overflow-y-auto dark:border-gray-700 dark:bg-gray-800">
-                                                {availableStudents.length === 0 ? (
-                                                    <div className="p-3 text-center text-sm text-gray-500 dark:text-gray-400">
-                                                        {isFetchingStudents ? 'Loading...' : 'All students are enrolled'}
+                                    <div className="flex flex-col gap-3">
+                                        <div className="relative">
+                                            <Input
+                                                type="text"
+                                                placeholder="Search students by name or email..."
+                                                value={studentSearch}
+                                                onChange={(e) => handleInputChange(e.target.value)}
+                                                className="h-9 bg-white text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                            />
+                                            <Search className="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                                        </div>
+
+                                        {studentSearch && (
+                                            <div className="max-h-[200px] overflow-y-auto rounded-lg border border-gray-200 bg-white dark:border-gray-600 dark:bg-gray-700">
+                                                {isSearching ? (
+                                                    <div className="flex items-center justify-center p-3 text-sm text-gray-500 dark:text-gray-400">
+                                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                        Searching...
                                                     </div>
+                                                ) : filteredStudents.length === 0 ? (
+                                                    <div className="p-3 text-center text-sm text-gray-500 dark:text-gray-400">No students found</div>
                                                 ) : (
-                                                    availableStudents.map((student) => (
-                                                        <SelectItem
+                                                    filteredStudents.map((student) => (
+                                                        <div
                                                             key={student.id}
-                                                            value={student.id}
-                                                            className="dark:text-white dark:focus:bg-gray-700"
+                                                            onClick={() => {
+                                                                setStudentToAdd(student.id);
+                                                                setStudentSearch(student.name);
+                                                            }}
+                                                            className="cursor-pointer border-b border-gray-100 p-3 last:border-b-0 hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-600"
                                                         >
                                                             <div className="flex flex-col">
-                                                                <span className="text-sm font-medium">{student.name}</span>
+                                                                <span className="text-sm font-medium text-gray-900 dark:text-white">
+                                                                    {student.name}
+                                                                </span>
                                                                 <span className="text-xs text-gray-500 dark:text-gray-400">{student.email}</span>
                                                             </div>
-                                                        </SelectItem>
+                                                        </div>
                                                     ))
                                                 )}
-                                            </SelectContent>
-                                        </Select>
-                                        <Button
-                                            onClick={handleAddStudent}
-                                            disabled={!studentToAdd || isAddingStudent}
-                                            className="h-9 bg-blue-600 px-4 text-sm hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-                                        >
-                                            {isAddingStudent ? (
-                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                            ) : (
-                                                <>
-                                                    <UserPlus className="mr-2 h-4 w-4" />
-                                                    Add
-                                                </>
+                                            </div>
+                                        )}
+
+                                        <div className="flex gap-3">
+                                            <Button
+                                                onClick={handleAddStudent}
+                                                disabled={!studentToAdd || isAddingStudent}
+                                                className="h-9 bg-blue-600 px-4 text-sm hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                                            >
+                                                {isAddingStudent ? (
+                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                ) : (
+                                                    <>
+                                                        <UserPlus className="mr-2 h-4 w-4" />
+                                                        Add
+                                                    </>
+                                                )}
+                                            </Button>
+                                            {studentToAdd && (
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={() => {
+                                                        setStudentToAdd(null);
+                                                        setStudentSearch('');
+                                                    }}
+                                                    className="h-9 px-4 text-sm dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+                                                >
+                                                    Clear
+                                                </Button>
                                             )}
-                                        </Button>
+                                        </div>
                                     </div>
                                 </div>
 
