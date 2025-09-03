@@ -136,7 +136,7 @@ class DatabaseSeeder extends Seeder
             $schedulePatterns = [
                 // Pattern 1: Mon-Wed-Fri classes
                 ['monday', 'wednesday', 'friday'],
-                // Pattern 2: Tue-Thu classes  
+                // Pattern 2: Tue-Thu classes
                 ['tuesday', 'thursday'],
                 // Pattern 3: Weekend intensive
                 ['saturday', 'sunday'],
