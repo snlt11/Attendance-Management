@@ -32,13 +32,21 @@ class UserController extends Controller
             'status' => ['required', Rule::in(['active', 'inactive', 'suspended'])],
             'address' => 'nullable|string|max:255',
             'date_of_birth' => 'nullable|date',
+            'password' => [
+                'required',
+                'string',
+                Rule::password()->min(8)
+                    ->mixedCase()   // requires uppercase + lowercase
+                    ->letters()     // at least one letter
+                    ->numbers()     // at least one number
+                    ->symbols()     // at least one special character
+            ],
         ]);
 
         $user = User::create($validated);
-        $password = Helper::generate();
+        // $password = Helper::generate();
         logger("Creating user with email: {$validated['email']}");
-        logger($password);
-        $validated['password'] = bcrypt($password);
+        $validated['password'] = bcrypt($validated['password']);
 
         return response()->json([
             'success' => true,

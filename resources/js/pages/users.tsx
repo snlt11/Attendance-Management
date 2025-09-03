@@ -18,13 +18,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
+import { generatePassword } from '@/lib/utils';
 import type { BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import { debounce } from 'lodash';
 import { BookOpen, Briefcase, ChevronLeft, ChevronRight, Edit, GraduationCap, Loader2, Plus, Search, Shield, Trash2, Users } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { toast, Toaster } from 'sonner';
-
 interface UserItem {
     id: string;
     name: string;
@@ -187,6 +187,7 @@ export default function UserManagement({
         status: 'active',
         address: '',
         date_of_birth: '',
+        password: '',
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -276,10 +277,12 @@ export default function UserManagement({
 
             let response;
             if (isEditing && editingUser) {
+                // Remove password from form data when editing
+                const { password, ...updateData } = formData;
                 response = await fetch(`/users/${editingUser.id}`, {
                     method: 'PUT',
                     headers,
-                    body: JSON.stringify(formData),
+                    body: JSON.stringify(updateData),
                 });
             } else {
                 response = await fetch('/users', {
@@ -367,19 +370,6 @@ export default function UserManagement({
         setUserToDelete(null);
     };
 
-    const resetForm = () => {
-        setFormData({
-            name: '',
-            email: '',
-            phone: '',
-            role: '',
-            status: 'active',
-            address: '',
-            date_of_birth: '',
-        });
-        setErrors({});
-    };
-
     const handleEdit = (user: UserItem) => {
         try {
             setIsEditing(true);
@@ -391,6 +381,7 @@ export default function UserManagement({
                 role: user.role,
                 status: user.status,
                 address: user.address || '',
+                password: '', // Keep password empty when editing
                 date_of_birth: user.date_of_birth || '',
             });
             setIsDialogOpen(true);
@@ -452,6 +443,28 @@ export default function UserManagement({
         return dateString ? new Date(dateString).toLocaleDateString() : '';
     };
 
+    // Function to reset form and generate new password
+    const resetForm = () => {
+        setFormData({
+            name: '',
+            email: '',
+            phone: '',
+            role: '',
+            status: 'active',
+            address: '',
+            date_of_birth: '',
+            password: '', // Reset password field to empty
+        });
+        setErrors({});
+    };
+
+    useEffect(() => {
+        if (!isDialogOpen) {
+            setIsEditing(false);
+            setEditingUser(null);
+        }
+    }, [isDialogOpen]);
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Users" />
@@ -465,7 +478,18 @@ export default function UserManagement({
 
                     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button className="bg-blue-600 hover:bg-blue-700">
+                            <Button
+                                className="bg-blue-600 hover:bg-blue-700"
+                                onClick={() => {
+                                    setIsEditing(false);
+                                    resetForm();
+                                    // Generate password only when adding a new user
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        password: generatePassword(),
+                                    }));
+                                }}
+                            >
                                 <Plus className="mr-2 h-4 w-4" />
                                 Add New User
                             </Button>
@@ -521,11 +545,13 @@ export default function UserManagement({
                                                 <SelectValue placeholder="Select role" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {roles.filter(r=>r.label !== 'Student').map((role) => (
-                                                    <SelectItem key={role.value} value={role.value}>
-                                                        {role.label}
-                                                    </SelectItem>
-                                                ))}
+                                                {roles
+                                                    .filter((r) => r.label !== 'Student')
+                                                    .map((role) => (
+                                                        <SelectItem key={role.value} value={role.value}>
+                                                            {role.label}
+                                                        </SelectItem>
+                                                    ))}
                                             </SelectContent>
                                         </Select>
                                         {errors.role && <p className="text-sm text-red-600">{errors.role}</p>}
@@ -568,6 +594,44 @@ export default function UserManagement({
                                         placeholder="Full address"
                                     />
                                 </div>
+                                {!isEditing && (
+                                    <div className="space-y-2">
+                                        <Label htmlFor="password">Password</Label>
+                                        <div className="flex gap-2">
+                                            <Input
+                                                id="password"
+                                                value={formData.password}
+                                                onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
+                                                placeholder="Password"
+                                            />
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(formData.password);
+                                                    toast.success('Password copied to clipboard!');
+                                                }}
+                                                className="flex-shrink-0"
+                                            >
+                                                <svg
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    width="16"
+                                                    height="16"
+                                                    viewBox="0 0 24 24"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    strokeWidth="2"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    className="h-4 w-4"
+                                                >
+                                                    <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+                                                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                                                </svg>
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="flex justify-end gap-2 border-t pt-4">
                                     <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
