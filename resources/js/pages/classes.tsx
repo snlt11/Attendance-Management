@@ -1269,6 +1269,35 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                                             />
                                         </div>
 
+                                        {/* <div className="space-y-2">
+                                            <Label htmlFor="class_status">Class Status</Label>
+                                            <Select
+                                                value={formData.class_status}
+                                                onValueChange={(value) => {
+                                                    setFormData((prev) => ({ ...prev, class_status: value }));
+                                                    setErrors((prev) => {
+                                                        const newErrors = { ...prev };
+                                                        delete newErrors.class_status;
+                                                        return newErrors;
+                                                    });
+                                                }}
+                                            >
+                                                <SelectTrigger className={errors.class_status ? 'border-red-500' : ''}>
+                                                    <SelectValue placeholder="Select class status" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="active">Active</SelectItem>
+                                                    <SelectItem value="inactive">Inactive</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            {errors.class_status?.map((error, index) => (
+                                                <p key={index} className="text-sm text-red-500">
+                                                    {error}
+                                                </p>
+                                            ))}
+                                        </div>
+                                        */}
+
                                         <div className="space-y-2">
                                             <Label htmlFor="subject_id">Subject</Label>
                                             <Select
@@ -1564,7 +1593,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                 </div>
 
                 {/* Modern Stats Section */}
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {/* <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     <div className="group relative overflow-hidden rounded-xl border border-blue-200/50 bg-gradient-to-br from-blue-50 to-blue-100/50 p-6 transition-all duration-300 hover:shadow-lg hover:shadow-blue-100/50 dark:border-blue-800/50 dark:from-blue-950/50 dark:to-blue-900/30 dark:hover:shadow-blue-900/20">
                         <div className="relative z-10">
                             <div className="flex items-center gap-3">
@@ -1617,7 +1646,7 @@ export default function Classes({ classes: initialClasses, filters, subjects, us
                             </div>
                         </>
                     )}
-                </div>
+                </div> */}
 
                 {/* Classes Grid */}
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">

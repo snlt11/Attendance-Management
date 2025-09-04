@@ -19,12 +19,12 @@ class DatabaseSeeder extends Seeder
     {
         // Create admin user if it doesn't exist
         User::firstOrCreate(
-            ['email' => 'admin@admin.com'],
+            ['email' => 'admin@gmail.com'],
             [
                 'name' => 'Admin',
                 'role' => 'teacher',
                 'status' => 'active',
-                'password' => bcrypt('SuperSecure@123'),
+                'password' => bcrypt('Admin@123'),
                 'phone' => '0123456789',
                 'date_of_birth' => '1980-01-01',
                 'address' => '123 Admin Street, Admin City, Admin Country',

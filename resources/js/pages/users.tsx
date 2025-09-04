@@ -693,7 +693,7 @@ export default function UserManagement({
                 </div>
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {/* <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
                     <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100 p-6 shadow-sm dark:border-blue-800 dark:from-blue-950 dark:to-blue-900">
                         <div className="flex items-center justify-between">
                             <div className="space-y-2">
@@ -741,7 +741,7 @@ export default function UserManagement({
                             </div>
                         </div>
                     </div>
-                </div>
+                </div> */}
 
                 {/* Users Grid */}
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

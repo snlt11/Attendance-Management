@@ -17,6 +17,10 @@ class DashboardController extends Controller
             ->where('status', 'active')
             ->count();
 
+        //Get total subject count
+        $totalSubjects = DB::table('subjects')
+            ->count();
+
         // Get total active classes
         $totalClasses = DB::table('classes')
             ->where('status', 'active')
@@ -57,10 +61,10 @@ class DashboardController extends Controller
             ->join('users as u', 'c.user_id', '=', 'u.id')
             ->join('locations as l', 'c.location_id', '=', 'l.id')
             ->leftJoin(DB::raw('(
-                SELECT 
+                SELECT
                     class_session_id,
                     COUNT(*) as attendees
-                FROM attendances 
+                FROM attendances
                 WHERE status = "present"
                 GROUP BY class_session_id
             ) as attendance_count'), 'cs.id', '=', 'attendance_count.class_session_id')
@@ -101,7 +105,8 @@ class DashboardController extends Controller
             'todayAttendance' => $todayAttendance,
             'attendanceRate' => $attendanceRate,
             'activeClasses' => $activeClassesToday,
-            'studentGrowth' => $studentGrowth
+            'studentGrowth' => $studentGrowth,
+            'totalSubjects' => $totalSubjects
         ];
 
         // Format recent classes data to match frontend expectations

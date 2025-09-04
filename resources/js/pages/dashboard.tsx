@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import type { BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
-import { BookOpen, Calendar, ChevronLeft, ChevronRight, Clock, MapPin, Search, TrendingUp, Users } from 'lucide-react';
+import { Book, BookOpen, ChevronLeft, ChevronRight, Clock, MapPin, Search, TrendingUp, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 interface DashboardStats {
@@ -17,6 +17,7 @@ interface DashboardStats {
     attendanceRate: number;
     activeClasses: number;
     studentGrowth: number;
+    totalSubjects: number;
 }
 
 interface RecentClass {
@@ -286,14 +287,14 @@ export default function Dashboard({ stats, recentClasses }: DashboardProps) {
 
                     <Card className="relative transform overflow-hidden border-0 bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg transition-all duration-300 hover:scale-105">
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium opacity-90">Today's Attendance</CardTitle>
+                            <CardTitle className="text-sm font-medium opacity-90">Total Subjects</CardTitle>
                             <div className="rounded-lg bg-white/20 p-2">
-                                <Calendar className="h-5 w-5" />
+                                <Book className="h-5 w-5" />
                             </div>
                         </CardHeader>
                         <CardContent>
-                            <div className="mb-1 text-3xl font-bold">{stats.todayAttendance}</div>
-                            <p className="text-xs opacity-90">{stats.attendanceRate}% attendance rate</p>
+                            <div className="mb-1 text-3xl font-bold">{stats.totalSubjects}</div>
+                            <p className="text-xs opacity-90">let's start learn</p>
                         </CardContent>
                         <div className="absolute top-0 right-0 -mt-12 -mr-12 h-24 w-24 rounded-full bg-white/10"></div>
                     </Card>
@@ -424,7 +425,7 @@ export default function Dashboard({ stats, recentClasses }: DashboardProps) {
                                             </div>
                                         </div>
 
-                                        <div className="ml-6 text-right">
+                                        {/* <div className="ml-6 text-right">
                                             <div className="min-w-[120px] rounded-lg border border-indigo-200/60 bg-gradient-to-br from-indigo-100/85 via-blue-100/85 to-purple-100/85 p-4 shadow-md backdrop-blur-sm dark:border-indigo-400/60 dark:from-indigo-900/85 dark:via-blue-900/85 dark:to-purple-900/85">
                                                 <div
                                                     className={`text-2xl font-bold ${getAttendanceColor(classItem.attendees, classItem.capacity)} drop-shadow-sm`}
@@ -449,7 +450,7 @@ export default function Dashboard({ stats, recentClasses }: DashboardProps) {
                                                     ></div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> */}
                                     </div>
                                 ))
                             )}
