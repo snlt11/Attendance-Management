@@ -425,7 +425,7 @@ export default function Dashboard({ stats, recentClasses }: DashboardProps) {
                                             </div>
                                         </div>
 
-                                        {/* <div className="ml-6 text-right">
+                                        <div className="ml-6 text-right">
                                             <div className="min-w-[120px] rounded-lg border border-indigo-200/60 bg-gradient-to-br from-indigo-100/85 via-blue-100/85 to-purple-100/85 p-4 shadow-md backdrop-blur-sm dark:border-indigo-400/60 dark:from-indigo-900/85 dark:via-blue-900/85 dark:to-purple-900/85">
                                                 <div
                                                     className={`text-2xl font-bold ${getAttendanceColor(classItem.attendees, classItem.capacity)} drop-shadow-sm`}
@@ -450,7 +450,7 @@ export default function Dashboard({ stats, recentClasses }: DashboardProps) {
                                                     ></div>
                                                 </div>
                                             </div>
-                                        </div> */}
+                                        </div>
                                     </div>
                                 ))
                             )}

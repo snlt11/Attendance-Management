@@ -220,7 +220,7 @@ class ClassController extends Controller
                 'schedules.*.day_of_week' => 'required|in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
                 'schedules.*.start_time' => 'required|date_format:H:i',
                 'schedules.*.end_time' => 'required|date_format:H:i|after:schedules.*.start_time',
-                
+
             ]);
 
             DB::beginTransaction();
@@ -354,13 +354,38 @@ class ClassController extends Controller
             // Get today with myanmar timezone
             $today = now()->setTimezone('Asia/Yangon')->format('l'); //Full day name (Monday, Tuesday, etc.)
 
+            if (now()->toDateString() > $class->end_date) {
+                return response()->json([
+                    'message' => 'Class period has ended',
+                    'error' => 'Cannot generate QR code for a class that has already ended.'
+                ], 422);
+            }
+
             $todaySchedule = $class->schedules()
                 ->where('day_of_week', strtolower($today))
                 ->first();
 
-            if (!$todaySchedule) {
+
+            $isFinished = false;
+            if ($todaySchedule) {
+                // Convert schedule end_time to Carbon for comparison
+                $scheduleEndTime = \Carbon\Carbon::createFromFormat('H:i', $todaySchedule->end_time, 'Asia/Yangon');
+                $nowYangon = now()->setTimezone('Asia/Yangon');
+                $isFinished = $scheduleEndTime->lessThan($nowYangon);
+            } else {
+                $isFinished = false;
+            }
+
+
+            if (!$todaySchedule ) {
                 return response()->json([
                     'message' => 'No class scheduled for today',
+                    'error' => 'This class is not scheduled to run today.'
+                ], 422);
+            }
+            if ($isFinished) {
+                return response()->json([
+                    'message' => 'This Class is Finished',
                     'error' => 'This class is not scheduled to run today.'
                 ], 422);
             }
