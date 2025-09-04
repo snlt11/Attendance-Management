@@ -103,9 +103,12 @@ class CheckInAttendanceController extends Controller
             $classStartTime = Carbon::parse($session->start_time, 'Asia/Yangon');
             $classEndTime = Carbon::parse($session->end_time, 'Asia/Yangon');
 
-            if ($now->lt($classStartTime) || $now->gt($classEndTime)) {
-                throw new MessageError('You can only check in during the class schedule time: ' .
-                    $classStartTime->format('H:i') . ' - ' .
+            // Allow check-in 15 minutes before class starts
+            $earlyCheckInTime = (clone $classStartTime)->subMinutes(15);
+
+            if ($now->lt($earlyCheckInTime) || $now->gt($classEndTime)) {
+                throw new MessageError('You can check in starting 15 minutes before class (' .
+                    $earlyCheckInTime->format('H:i') . ') until class ends at ' .
                     $classEndTime->format('H:i') . '.', 403);
             }
 
@@ -131,12 +134,14 @@ class CheckInAttendanceController extends Controller
                 throw new MessageError('You are not close enough to the class location to check in.', 403);
             }
 
+            $lateThreshold = (clone $classStartTime)->addMinutes(30);
+            $status = $now->gt($lateThreshold) ? 'late' : 'present';
 
             // Create attendance record
             $attendance = Attendance::create([
                 'user_id' => $user->id,
                 'class_session_id' => $session->id,
-                'status' => 'present',
+                'status' => $status,
                 'checked_in_at' => $now,
             ]);
 
