@@ -59,7 +59,7 @@ class AttendanceController extends Controller
         $attendedSessions = $class->sessions()
             ->whereHas('attendances', function ($query) use ($studentId) {
                 $query->where('user_id', $studentId)
-                    ->where('status', 'present');
+                    ->whereIn('status', ['present','late']);
             })
             ->where('session_date', '>=', $startDate)
             ->where('session_date', '<=', $endDate)

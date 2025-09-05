@@ -84,6 +84,7 @@ export default function Attendances() {
                             <p className="text-xs text-muted-foreground">All class sessions in date range</p>
                         </CardContent>
                     </Card>
+                    
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Attended Sessions</CardTitle>
@@ -133,9 +134,10 @@ export default function Attendances() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+
                                     {attendances.data.length > 0 ? (
                                         attendances.data.map((attendance) => (
-                                            <tr 
+                                            <tr
                                                 key={attendance.id}
                                                 className="group transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50"
                                             >
@@ -151,7 +153,7 @@ export default function Attendances() {
                                                     {attendance.class_session.start_time} - {attendance.class_session.end_time}
                                                 </td>
                                                 <td className="whitespace-nowrap px-4 py-3 text-gray-600 dark:text-gray-300">
-                                                    {attendance.checked_in_at 
+                                                    {attendance.checked_in_at
                                                         ? new Date(attendance.checked_in_at).toLocaleTimeString(undefined, {
                                                             hour: '2-digit',
                                                             minute: '2-digit'
