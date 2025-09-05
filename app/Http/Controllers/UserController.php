@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
+
 
 class UserController extends Controller
 {
@@ -35,7 +37,7 @@ class UserController extends Controller
             'password' => [
                 'required',
                 'string',
-                Rule::password()->min(8)
+                Password::min(8)
                     ->mixedCase()   // requires uppercase + lowercase
                     ->letters()     // at least one letter
                     ->numbers()     // at least one number
